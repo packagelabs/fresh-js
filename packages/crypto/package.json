@@ -1,0 +1,17 @@
+{
+  "name": "@fresh-js/crypto",
+  "version": "0.0.1",
+  "main": "index.js",
+  "files": [
+    "lib/**/*"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "elliptic": "^6.5.4",
+    "sha3": "^2.1.4"
+  },
+  "devDependencies": {
+    "@types/elliptic": "^6.4.14",
+    "@types/node": "^17.0.34"
+  }
+}
