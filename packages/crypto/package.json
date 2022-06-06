@@ -1,7 +1,7 @@
 {
   "name": "@fresh-js/crypto",
-  "version": "0.0.1",
-  "main": "index.js",
+  "version": "0.0.2",
+  "main": "lib/index.js",
   "files": [
     "lib/**/*"
   ],
