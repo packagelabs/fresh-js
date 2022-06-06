@@ -1,0 +1,14 @@
+{
+  "name": "@fresh-js/nft",
+  "version": "0.0.1",
+  "main": "lib/index.js",
+  "files": [
+    "lib/**/*"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@onflow/fcl": "^1.0.2",
+    "@onflow/types": "^1.0.1",
+    "handlebars": "^4.7.7"
+  }
+}
