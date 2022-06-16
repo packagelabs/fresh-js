@@ -1,4 +1,4 @@
-import { getHasher, HashAlgorithm, SHA2_256Hasher, SHA3_256Hasher } from './hash';
+import { getHasher, HashAlgorithm } from './hash';
 
 const HASH_ALGORITHMS = [HashAlgorithm.SHA2_256, HashAlgorithm.SHA3_256];
 
