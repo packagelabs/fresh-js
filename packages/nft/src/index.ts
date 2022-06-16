@@ -1,192 +1,49 @@
-const Handlebars = require('handlebars');
-const fcl = require('@onflow/fcl');
-const t = require('@onflow/types');
-
-fcl.config().put('accessNode.api', 'http://localhost:8888');
-
-import * as path from 'path';
-import * as fs from 'fs';
-
-import { Field, fieldTypes } from './metadata/fields';
+import * as fcl from '@onflow/fcl';
+import * as t from '@onflow/types';
 import { Signer } from '@fresh-js/crypto';
-import { hashMetadata } from './metadata';
+import { Field, fieldTypes, MetadataMap, hashMetadata } from './metadata';
+import OnChainMintRevealGenerator from './generators/OnChainMintRevealGenerator';
 
-interface MintResult {
-  id: string;
-  transactionId: string;
-  metadata: Metadata;
+type HashedNFT = {
+  metadata: MetadataMap;
   metadataHash: string;
+  metadataSalt: string;
 }
 
-interface RevealResult {
+type NFTMintResult = {
   id: string;
-  transactionId: string;
-  metadata: Metadata;
+  metadata: MetadataMap;
   metadataHash: string;
+  metadataSalt: string;
+  transactionId: string;
+};
+
+interface NFTRevealInput {
+  id: string;
+  metadata: MetadataMap;
+  metadataSalt: string;
 }
 
-type Metadata = { [key: string]: any }
+type NFTRevealResult = {
+  id: string;
+  transactionId: string;
+};
+
+type Event = {
+  type: string;
+  data: { [key: string]: string };
+};
 
 export class OnChainMintRevealProject {
   contractName: string;
   contractAddress: string | null;
-  metadataSalt: Buffer;
 
   static defaultFields: Field[] = [
     new Field('name', fieldTypes.String),
     new Field('description', fieldTypes.String),
     new Field('image', fieldTypes.IPFSImage),
-  ]
+  ];
 
-  userFields: Field[];
-
-  transactions: OnChainMintRevealTransactionGenerator;
-
-  constructor({
-    contractName,
-    contractAddress,
-    fields,
-  }: {
-    contractName: string;
-    contractAddress: string | null;
-    fields: Field[];
-  }) {
-    this.contractName = contractName;
-    this.contractAddress = contractAddress || null;
-    this.userFields = fields;
-
-    // TODO: make parameter
-    this.metadataSalt = Buffer.alloc(10);
-
-    const allFields = this.fields();
-
-    this.transactions = new OnChainMintRevealTransactionGenerator({ contractName, contractAddress, fields: allFields });
-  }
-
-  fields(): Field[] {
-    return [
-      ...OnChainMintRevealProject.defaultFields,
-      ...this.userFields
-    ]
-  }
-
-  async mint(metadata: Metadata[], options: TransactionOptions): Promise<MintResult[]> {
-
-    const fields = this.fields();
-
-    const metadataHashes = metadata.map(
-      metadata => hashMetadata(fields, this.metadataSalt, metadata).toString("hex")
-    )
-
-    const transaction = await this.transactions.mint();
-
-    const response = await fcl.send([
-      fcl.transaction(transaction),
-      fcl.args([fcl.arg(metadataHashes, t.Array(t.String))]),
-      fcl.limit(1000),
-
-      // TODO: move these to standard helper function on TransactionOptions
-      fcl.payer(options.payer.toFCLAuthorizationFunction()),
-      fcl.proposer(options.proposer.toFCLAuthorizationFunction()),
-      fcl.authorizations(options.authorizers.map((authorizer) => authorizer.toFCLAuthorizationFunction())),
-    ]);
-
-    const { transactionId } = response;
-
-    // TODO: handle error
-    const { error, events } = await fcl.tx(response).onceSealed();
-
-    return this.formatMintResults(transactionId, events, metadata, metadataHashes);
-  }
-
-  private formatMintResults(
-    transactionId: string,
-    events: any[],
-    metadata: Metadata[],
-    metadataHashes: string[]
-  ): MintResult[] {
-    const deposits = events.filter((event) => event.type.includes('.Minted'));
-
-    return deposits.map((deposit, i) => {
-      return {
-        id: deposit.data.id,
-        transactionId,
-        metadata: metadata[i],
-        metadataHash: metadataHashes[i],
-      };
-    });
-  }
-
-  async reveal(ids: string[], metadata: Metadata[], options: TransactionOptions): Promise<RevealResult[]> {
-
-    const fields = this.fields();
-
-    const metadataHashes = metadata.map(
-      metadata => hashMetadata(fields, this.metadataSalt, metadata).toString("hex")
-    )
-
-    const transaction = await this.transactions.reveal();
-
-    console.log(transaction);
-
-    const response = await fcl.send([
-      fcl.transaction(transaction),
-      fcl.args([
-        fcl.arg(ids, t.Array(t.UInt64)),
-        ...fields.map(field => {
-          return fcl.arg(
-            metadata.map(values => field.getValue(values)),
-            t.Array(field.type.cadenceType)
-          )
-        })
-      ]),
-      fcl.limit(1000),
-
-      // TODO: move these to standard helper function on TransactionOptions
-      fcl.payer(options.payer.toFCLAuthorizationFunction()),
-      fcl.proposer(options.proposer.toFCLAuthorizationFunction()),
-      fcl.authorizations(options.authorizers.map((authorizer) => authorizer.toFCLAuthorizationFunction())),
-    ]);
-
-    const { transactionId } = response;
-
-    // TODO: handle error
-    const { error, events } = await fcl.tx(response).onceSealed();
-
-    return this.formatRevealtResults(transactionId, events, metadata, metadataHashes)
-  }
-
-  private formatRevealtResults(
-    transactionId: string,
-    events: any[],
-    metadata: Metadata[],
-    metadataHashes: string[]
-  ): RevealResult[] {
-    const deposits = events.filter((event) => event.type.includes('.Revealed'));
-
-    return deposits.map((deposit, i) => {
-      return {
-        id: deposit.data.id,
-        transactionId,
-        metadata: metadata[i],
-        metadataHash: metadataHashes[i],
-      };
-    });
-  }
-
-  async contract(): Promise<string> {
-    const src = './templates/cadence/on-chain-mint-reveal/contracts/NFT.cdc';
-
-    const templateSource = await fs.promises.readFile(path.resolve(__dirname, src), 'utf8');
-    const template = Handlebars.compile(templateSource);
-
-    return template({ name: this.contractName, fields: this.fields });
-  }
-}
-
-class TransactionGenerator {
-  contractName: string;
-  contractAddress: string | null;
   fields: Field[];
 
   constructor({
@@ -200,39 +57,120 @@ class TransactionGenerator {
   }) {
     this.contractName = contractName;
     this.contractAddress = contractAddress || null;
-    this.fields = fields;
+    this.fields = [...OnChainMintRevealProject.defaultFields, ...fields];
   }
 
-  async startDrop(): Promise<string> {
-    const src = './templates/cadence/common/transactions/queue/start_drop.cdc';
-
-    const templateSource = await fs.promises.readFile(path.resolve(__dirname, src), 'utf8');
-
-    const template = Handlebars.compile(templateSource);
-
-    return template({ contractName: this.contractName, contractAddress: this.contractAddress });
-  }
-}
-
-class OnChainMintRevealTransactionGenerator extends TransactionGenerator {
-  async mint(): Promise<string> {
-    const src = './templates/cadence/on-chain-mint-reveal/transactions/mint.cdc';
-
-    const templateSource = await fs.promises.readFile(path.resolve(__dirname, src), 'utf8');
-
-    const template = Handlebars.compile(templateSource);
-
-    return template({ contractName: this.contractName, contractAddress: this.contractAddress });
+  async getContract(): Promise<string> {
+    return OnChainMintRevealGenerator.contract({
+      contractName: this.contractName,
+      fields: this.fields
+    });
   }
 
-  async reveal(): Promise<string> {
-    const src = './templates/cadence/on-chain-mint-reveal/transactions/reveal.cdc';
+  async mintNFTs(metadata: MetadataMap[], options: TransactionOptions): Promise<NFTMintResult[]> {
+    const hashedNFTs = this.hashNFTs(metadata);
 
-    const templateSource = await fs.promises.readFile(path.resolve(__dirname, src), 'utf8');
+    const hashes = hashedNFTs.map(nft => nft.metadataHash);
 
-    const template = Handlebars.compile(templateSource);
+    const transaction = await OnChainMintRevealGenerator.mint({
+      contractName: this.contractName,
+      contractAddress: this.contractAddress!,
+    });
 
-    return template({ contractName: this.contractName, contractAddress: this.contractAddress, fields: this.fields });
+    const response = await fcl.send([
+      fcl.transaction(transaction),
+      fcl.args([fcl.arg(hashes, t.Array(t.String))]),
+      fcl.limit(1000),
+
+      // TODO: move these to standard helper function on TransactionOptions
+      fcl.payer(options.payer.toFCLAuthorizationFunction()),
+      fcl.proposer(options.proposer.toFCLAuthorizationFunction()),
+      fcl.authorizations(options.authorizers.map((authorizer) => authorizer.toFCLAuthorizationFunction())),
+    ]);
+
+    const { transactionId } = response;
+
+    // TODO: handle error
+    const { events } = await fcl.tx(response).onceSealed();
+
+    return this.formatMintResults(transactionId, events, hashedNFTs);
+  }
+
+  private hashNFTs(metadata: MetadataMap[]): HashedNFT[] {
+    return metadata.map((metadata) => {
+      const { hash, salt } = hashMetadata(this.fields, metadata);
+
+      return {
+        metadata,
+        metadataHash: hash.toString('hex'),
+        metadataSalt: salt.toString('hex'),
+      };
+    });
+  }
+
+  private formatMintResults(transactionId: string, events: Event[], nfts: HashedNFT[]): NFTMintResult[] {
+    const deposits = events.filter((event) => event.type.includes('.Minted'));
+
+    return deposits.map((deposit, i) => {
+      const { metadata, metadataHash, metadataSalt } = nfts[i];
+
+      return {
+        id: deposit.data.id,
+        metadata,
+        metadataHash,
+        metadataSalt,
+        transactionId,
+      };
+    });
+  }
+
+  async revealNFTs(nfts: NFTRevealInput[], options: TransactionOptions): Promise<NFTRevealResult[]> {
+    const ids = nfts.map((nft) => nft.id);
+    const salts = nfts.map((nft) => nft.metadataSalt);
+
+    const transaction = await OnChainMintRevealGenerator.reveal({
+      contractName: this.contractName,
+      contractAddress: this.contractAddress!,
+      fields: this.fields,
+    });
+
+    const response = await fcl.send([
+      fcl.transaction(transaction),
+      fcl.args([
+        fcl.arg(ids, t.Array(t.UInt64)),
+        fcl.arg(salts, t.Array(t.String)),
+        ...this.fields.map((field) => {
+          return fcl.arg(
+            nfts.map((nft) => field.getValue(nft.metadata)),
+            t.Array(field.type.cadenceType),
+          );
+        }),
+      ]),
+      fcl.limit(1000),
+
+      // TODO: move these to standard helper function on TransactionOptions
+      fcl.payer(options.payer.toFCLAuthorizationFunction()),
+      fcl.proposer(options.proposer.toFCLAuthorizationFunction()),
+      fcl.authorizations(options.authorizers.map((authorizer) => authorizer.toFCLAuthorizationFunction())),
+    ]);
+
+    const { transactionId } = response;
+
+    // TODO: handle error
+    const { events } = await fcl.tx(response).onceSealed();
+
+    return this.formatRevealtResults(transactionId, events);
+  }
+
+  private formatRevealtResults(transactionId: string, events: Event[]): NFTRevealResult[] {
+    const deposits = events.filter((event) => event.type.includes('.Revealed'));
+
+    return deposits.map((deposit) => {
+      return {
+        id: deposit.data.id,
+        transactionId,
+      };
+    });
   }
 }
 
@@ -263,7 +201,7 @@ export class Authorizer {
         tempId: 'SIGNER',
         addr: fcl.sansPrefix(this.address),
         keyId: this.keyIndex,
-        signingFunction: (data: any) => ({
+        signingFunction: (data: { message: string }) => ({
           addr: fcl.withPrefix(this.address),
           keyId: this.keyIndex,
           signature: toHex(this.signer.sign(fromHex(data.message))),
