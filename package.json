@@ -9,6 +9,7 @@
     "test": "jest",
     "build": "tsc --build tsconfig.json",
     "lint": "eslint . --ext .ts",
+    "lint-fix": "eslint . --fix --ext .ts",
     "format": "prettier --write \"packages/**/src/**/*.ts\""
   },
   "devDependencies": {
