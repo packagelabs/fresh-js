@@ -3,6 +3,11 @@ import * as fcl from '@onflow/fcl';
 
 import { Signer } from '@fresh-js/crypto';
 
+export type Event = {
+  type: string;
+  data: { [key: string]: string };
+};
+
 export interface TransactionOptions {
   payer: Authorizer;
   proposer: Authorizer;
