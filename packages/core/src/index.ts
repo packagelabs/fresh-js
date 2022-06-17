@@ -1,4 +1,6 @@
+// @ts-ignore
 import * as fcl from '@onflow/fcl';
+
 import { Signer } from '@fresh-js/crypto';
 
 export interface TransactionOptions {

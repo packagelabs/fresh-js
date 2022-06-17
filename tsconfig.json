@@ -1,6 +1,7 @@
 {
   "references": [
     { "path": "./packages/crypto" },
+    { "path": "./packages/core" },
   ],
   "files": [],
   "include": []
