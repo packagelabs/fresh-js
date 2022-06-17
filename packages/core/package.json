@@ -1,0 +1,13 @@
+{
+  "name": "@fresh-js/core",
+  "version": "0.0.1",
+  "main": "lib/index.js",
+  "files": [
+    "lib/**/*"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@fresh-js/crypto": "^0.0.2",
+    "@onflow/fcl": "^1.0.2"
+  }
+}
