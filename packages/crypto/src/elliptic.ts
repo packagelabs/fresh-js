@@ -69,9 +69,11 @@ class ECSignature {
 export class ECPublicKey implements PublicKey {
   private static size = 32;
   private ecKeyPair: elliptic.ec.KeyPair;
+  private sigAlgo: SignatureAlgorithm;
 
-  constructor(ecKeyPair: elliptic.ec.KeyPair) {
+  constructor(ecKeyPair: elliptic.ec.KeyPair, sigAlgo: SignatureAlgorithm) {
     this.ecKeyPair = ecKeyPair;
+    this.sigAlgo = sigAlgo;
   }
 
   public static fromBuffer(buffer: Buffer, sigAlgo: SignatureAlgorithm): ECPublicKey {
@@ -90,7 +92,7 @@ export class ECPublicKey implements PublicKey {
 
     const ecKeyPair = ec.keyFromPublic(publicKey, 'hex');
 
-    return new ECPublicKey(ecKeyPair);
+    return new ECPublicKey(ecKeyPair, sigAlgo);
   }
 
   verify(message: Buffer, signature: Buffer): boolean {
@@ -113,6 +115,10 @@ export class ECPublicKey implements PublicKey {
 
   toHex(): string {
     return this.toBuffer().toString('hex');
+  }
+
+  signatureAlgorithm(): SignatureAlgorithm {
+    return this.sigAlgo;
   }
 }
 
@@ -156,7 +162,7 @@ export class InMemoryECPrivateKey {
 
     const ecKeyPair = ec.keyFromPublic(publicKey);
 
-    return new ECPublicKey(ecKeyPair);
+    return new ECPublicKey(ecKeyPair, this.sigAlgo);
   }
 
   getSignatureAlgorithm(): SignatureAlgorithm {
