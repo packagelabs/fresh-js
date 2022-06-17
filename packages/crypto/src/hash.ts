@@ -6,6 +6,17 @@ export enum HashAlgorithm {
   SHA3_256 = 'SHA3_256',
 }
 
+export namespace HashAlgorithm {
+  export function toCadence(hashAlgo: HashAlgorithm) {
+    switch (hashAlgo) {
+      case HashAlgorithm.SHA2_256:
+        return 1;
+      case HashAlgorithm.SHA3_256:
+        return 3;
+    }
+  }
+}
+
 export interface Hasher {
   hash(message: Buffer): Buffer;
 }
