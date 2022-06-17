@@ -8,7 +8,7 @@ type HashedNFT = {
   metadata: MetadataMap;
   metadataHash: string;
   metadataSalt: string;
-}
+};
 
 type NFTMintResult = {
   id: string;
@@ -63,18 +63,19 @@ export class OnChainMintRevealProject {
   async getContract(): Promise<string> {
     return OnChainMintRevealGenerator.contract({
       contractName: this.contractName,
-      fields: this.fields
+      fields: this.fields,
     });
   }
 
   async mintNFTs(metadata: MetadataMap[], options: TransactionOptions): Promise<NFTMintResult[]> {
     const hashedNFTs = this.hashNFTs(metadata);
 
-    const hashes = hashedNFTs.map(nft => nft.metadataHash);
+    const hashes = hashedNFTs.map((nft) => nft.metadataHash);
 
     const transaction = await OnChainMintRevealGenerator.mint({
       contractName: this.contractName,
-      contractAddress: this.contractAddress!,
+      // TODO: return error if contract address is not set
+      contractAddress: this.contractAddress ?? '',
     });
 
     const response = await fcl.send([
@@ -130,7 +131,8 @@ export class OnChainMintRevealProject {
 
     const transaction = await OnChainMintRevealGenerator.reveal({
       contractName: this.contractName,
-      contractAddress: this.contractAddress!,
+      // TODO: return error if contract address is not set
+      contractAddress: this.contractAddress ?? '',
       fields: this.fields,
     });
 
