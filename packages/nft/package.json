@@ -7,6 +7,7 @@
   ],
   "license": "MIT",
   "dependencies": {
+    "@fresh-js/core": "^0.0.1",
     "@onflow/fcl": "^1.0.2",
     "@onflow/types": "^1.0.1",
     "handlebars": "^4.7.7"
