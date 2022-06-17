@@ -1,4 +1,4 @@
-import OnChainMintRevealProject from "./projects/OnChainMintRevealProject";
+import OnChainMintRevealProject from './projects/OnChainMintRevealProject';
 export { OnChainMintRevealProject };
 
-export { Field, fieldTypes } from "./metadata";
+export { Field, fieldTypes, parseFields, MetadataMap, MetadataValue } from './metadata';

@@ -1,7 +1,8 @@
 {
   "references": [
-    { "path": "./packages/crypto" },
     { "path": "./packages/core" },
+    { "path": "./packages/crypto" },
+    { "path": "./packages/nft" },
   ],
   "files": [],
   "include": []

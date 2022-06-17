@@ -1,5 +1,7 @@
 import { randomBytes } from 'crypto';
 import { SHA3_256Hasher } from '@fresh-js/crypto';
+
+// @ts-ignore
 import * as t from '@onflow/types';
 
 export type MetadataMap = { [key: string]: MetadataValue };
@@ -141,7 +143,7 @@ function getFieldTypeByName(name: string): FieldType {
   return fieldTypesByName[name];
 }
 
-function parseFields(fields: { name: string; type: string }[]) {
+function parseFields(fields: { name: string; type: string }[]): Field[] {
   return fields.map((field) => {
     const name = field.name;
     const type = getFieldTypeByName(field.type);
