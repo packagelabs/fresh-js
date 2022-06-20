@@ -41,7 +41,7 @@ export default class OnChainMintRevealProject {
   networkConfig: NetworkConfig;
 
   defaultAuthorizer?: Authorizer;
-  admin?: Authorizer;
+  minter?: Authorizer;
   payer?: Authorizer;
   proposer?: Authorizer;
 
@@ -73,7 +73,7 @@ export default class OnChainMintRevealProject {
     this.fields = [...OnChainMintRevealProject.defaultFields, ...fields];
 
     if (authorizers) {
-      this.admin = authorizers.admin;
+      this.minter = authorizers.minter;
       this.payer = authorizers.payer;
       this.proposer = authorizers.proposer;
     }
@@ -88,8 +88,8 @@ export default class OnChainMintRevealProject {
     this.defaultAuthorizer = auth;
   }
 
-  setAdmin(auth: Authorizer) {
-    this.admin = auth;
+  setMinter(auth: Authorizer) {
+    this.minter = auth;
   }
 
   setPayer(auth: Authorizer) {
@@ -149,8 +149,8 @@ export default class OnChainMintRevealProject {
   }
 
   private getAuthorizers(authorizers?: ProjectAuthorizers) {
-    const adminAuth = authorizers?.admin ?? this.admin ?? this.defaultAuthorizer;
-    if (!adminAuth) {
+    const minterAuth = authorizers?.minter ?? this.minter ?? this.defaultAuthorizer;
+    if (!minterAuth) {
       // TODO: improve error message
       throw 'must specify admin account';
     }
@@ -170,7 +170,7 @@ export default class OnChainMintRevealProject {
     return [
       fcl.payer(payerAuth.toFCLAuthorizationFunction()),
       fcl.proposer(proposerAuth.toFCLAuthorizationFunction()),
-      fcl.authorizations([adminAuth.toFCLAuthorizationFunction()]),
+      fcl.authorizations([minterAuth.toFCLAuthorizationFunction()]),
     ];
   }
 

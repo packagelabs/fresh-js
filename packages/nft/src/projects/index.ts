@@ -1,7 +1,7 @@
 import { Authorizer } from '@fresh-js/core';
 
 export type ProjectAuthorizers = {
-  admin?: Authorizer;
+  minter?: Authorizer;
   payer?: Authorizer;
   proposer?: Authorizer;
 };
