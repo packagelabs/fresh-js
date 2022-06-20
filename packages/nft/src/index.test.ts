@@ -36,7 +36,7 @@ describe('OnChainMintRevealProject', () => {
   it('should deploy a contract', async () => {
     const publicKey = privateKey.getPublicKey();
 
-    const contractAddress = await project.deployContract(publicKey, HashAlgorithm.SHA3_256, 'foo', {});
+    const contractAddress = await project.deployContract(publicKey, HashAlgorithm.SHA3_256, 'foo');
 
     console.log(contractAddress);
   });
@@ -59,19 +59,11 @@ describe('OnChainMintRevealProject', () => {
       },
     ];
 
-    const mintedNFTs = await project.mintNFTs(metadata, {
-      payer: authorizer,
-      proposer: authorizer,
-      authorizers: [authorizer],
-    });
+    const mintedNFTs = await project.mintNFTs(metadata);
 
     console.log(mintedNFTs);
 
-    const revealedNFTs = await project.revealNFTs(mintedNFTs, {
-      payer: authorizer,
-      proposer: authorizer,
-      authorizers: [authorizer],
-    });
+    const revealedNFTs = await project.revealNFTs(mintedNFTs);
 
     console.log(revealedNFTs);
   });

@@ -3,7 +3,7 @@ import * as fcl from '@onflow/fcl';
 // @ts-ignore
 import * as t from '@onflow/types';
 
-import { TransactionOptions, Event, Authorizer } from '@fresh-js/core';
+import { Event, Authorizer } from '@fresh-js/core';
 import { PublicKey, SignatureAlgorithm, HashAlgorithm } from '@fresh-js/crypto';
 import { Field, fieldTypes, MetadataMap, hashMetadata } from '../metadata';
 import OnChainMintRevealGenerator from '../generators/OnChainMintRevealGenerator';
@@ -174,7 +174,7 @@ export default class OnChainMintRevealProject {
     ];
   }
 
-  async mintNFTs(metadata: MetadataMap[], options: TransactionOptions): Promise<NFTMintResult[]> {
+  async mintNFTs(metadata: MetadataMap[], authorizers?: ProjectAuthorizers): Promise<NFTMintResult[]> {
     const hashedNFTs = this.hashNFTs(metadata);
 
     const hashes = hashedNFTs.map((nft) => nft.metadataHash);
@@ -191,10 +191,7 @@ export default class OnChainMintRevealProject {
       fcl.args([fcl.arg(hashes, t.Array(t.String))]),
       fcl.limit(1000),
 
-      // TODO: move these to standard helper function on TransactionOptions
-      fcl.payer(options.payer.toFCLAuthorizationFunction()),
-      fcl.proposer(options.proposer.toFCLAuthorizationFunction()),
-      fcl.authorizations(options.authorizers.map((authorizer) => authorizer.toFCLAuthorizationFunction())),
+      ...this.getAuthorizers(authorizers),
     ]);
 
     const { transactionId } = response;
@@ -233,7 +230,7 @@ export default class OnChainMintRevealProject {
     });
   }
 
-  async revealNFTs(nfts: NFTRevealInput[], options: TransactionOptions): Promise<NFTRevealResult[]> {
+  async revealNFTs(nfts: NFTRevealInput[], authorizers?: ProjectAuthorizers): Promise<NFTRevealResult[]> {
     const ids = nfts.map((nft) => nft.id);
     const salts = nfts.map((nft) => nft.metadataSalt);
 
@@ -259,10 +256,7 @@ export default class OnChainMintRevealProject {
       ]),
       fcl.limit(1000),
 
-      // TODO: move these to standard helper function on TransactionOptions
-      fcl.payer(options.payer.toFCLAuthorizationFunction()),
-      fcl.proposer(options.proposer.toFCLAuthorizationFunction()),
-      fcl.authorizations(options.authorizers.map((authorizer) => authorizer.toFCLAuthorizationFunction())),
+      ...this.getAuthorizers(authorizers),
     ]);
 
     const { transactionId } = response;
