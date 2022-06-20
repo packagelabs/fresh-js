@@ -1,6 +1,6 @@
-import NonFungibleToken from "./NonFungibleToken.cdc"
-import MetadataViews from "./MetadataViews.cdc"
-import FungibleToken from "./FungibleToken.cdc"
+import NonFungibleToken from {{ contracts.NonFungibleToken }}
+import MetadataViews from {{ contracts.MetadataViews }}
+import FungibleToken from {{ contracts.FungibleToken }}
 
 pub contract {{ contractName }}: NonFungibleToken {
 
@@ -266,32 +266,32 @@ pub contract {{ contractName }}: NonFungibleToken {
 
     // initializer
     //
-    init() {
+    init(admin: AuthAccount, placeholderImage: String) {
         // Set our named paths
-        self.CollectionStoragePath = /storage/{{ contractName }}Collection
-        self.CollectionPublicPath = /public/{{ contractName }}Collection
-        self.CollectionPrivatePath = /private/{{ contractName }}Collection
-        self.AdminStoragePath = /storage/{{ contractName }}Admin
+        self.CollectionStoragePath = /storage/{{ contractName }}Collection1
+        self.CollectionPublicPath = /public/{{ contractName }}Collection1
+        self.CollectionPrivatePath = /private/{{ contractName }}Collection1
+        self.AdminStoragePath = /storage/{{ contractName }}Admin1
 
         // Initialize the total supply
         self.totalSupply = 0
 
         // TODO: make these parameters
-        self.placeholderImage = "foo"
+        self.placeholderImage = placeholderImage
 
         self.metadata = {}
 
         let collection <- {{ contractName }}.createEmptyCollection()
         
-        self.account.save(<- collection, to: {{ contractName }}.CollectionStoragePath)
+        admin.save(<- collection, to: {{ contractName }}.CollectionStoragePath)
 
-        self.account.link<&{{ contractName }}.Collection>({{ contractName }}.CollectionPrivatePath, target: {{ contractName }}.CollectionStoragePath)
+        admin.link<&{{ contractName }}.Collection>({{ contractName }}.CollectionPrivatePath, target: {{ contractName }}.CollectionStoragePath)
 
-        self.account.link<&{{ contractName }}.Collection{NonFungibleToken.CollectionPublic, {{ contractName }}.{{ contractName }}CollectionPublic}>({{ contractName }}.CollectionPublicPath, target: {{ contractName }}.CollectionStoragePath)
+        admin.link<&{{ contractName }}.Collection{NonFungibleToken.CollectionPublic, {{ contractName }}.{{ contractName }}CollectionPublic}>({{ contractName }}.CollectionPublicPath, target: {{ contractName }}.CollectionStoragePath)
         
         // Create an admin resource and save it to storage
-        let admin <- create Admin()
-        self.account.save(<- admin, to: self.AdminStoragePath)
+        let adminResource <- create Admin()
+        admin.save(<- adminResource, to: self.AdminStoragePath)
 
         emit ContractInitialized()
     }
