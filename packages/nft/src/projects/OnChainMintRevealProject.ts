@@ -63,7 +63,7 @@ export default class OnChainMintRevealProject {
     contractName: string;
     contractAddress?: string;
     fields: Field[];
-    networkConfig: NetworkConfig,
+    networkConfig: NetworkConfig;
     authorizers?: ProjectAuthorizers;
   }) {
     this.contractName = contractName;
@@ -80,7 +80,7 @@ export default class OnChainMintRevealProject {
 
     // TODO: find a better way to set this.
     //
-    // Global config is messy but FCL requires it 
+    // Global config is messy but FCL requires it
     fcl.config().put('accessNode.api', this.networkConfig.host);
   }
 

@@ -4,7 +4,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 
 export interface Contracts {
-  [key: string]: string
+  [key: string]: string;
 }
 
 export default class TemplateGenerator {

@@ -1,4 +1,4 @@
-import { Authorizer } from "@fresh-js/core";
+import { Authorizer } from '@fresh-js/core';
 
 export type ProjectAuthorizers = {
   admin?: Authorizer;
