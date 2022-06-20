@@ -72,6 +72,7 @@ class Field {
 
   serializeValue(value: MetadataValue): Buffer {
     // TODO: improve serialization. currently all values serializes as UTF-8 strings
+    // off-chain serialization should match on-chain serialization in Cadence
     return this.type.serializeValue(value);
   }
 }
