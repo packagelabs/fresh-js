@@ -3,7 +3,6 @@ import { OnChainMintRevealProject, Field, fieldTypes } from './index';
 import { NetworkConfig, Authorizer } from '@fresh-js/core';
 
 describe('OnChainMintRevealProject', () => {
-  
   // Emulator configuration
   const networkConfig = new NetworkConfig({
     host: 'http://localhost:8888',

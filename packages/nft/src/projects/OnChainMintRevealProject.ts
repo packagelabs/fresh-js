@@ -35,7 +35,6 @@ type NFTRevealResult = {
 };
 
 export default class OnChainMintRevealProject extends Project {
-
   async getContract(): Promise<string> {
     return OnChainMintRevealGenerator.contract({
       contracts: this.networkConfig.contracts,

@@ -16,7 +16,6 @@ type NFTMintResult = {
 };
 
 export default class OnChainProject extends Project {
-
   async getContract(): Promise<string> {
     return OnChainGenerator.contract({
       contracts: this.networkConfig.contracts,
@@ -64,7 +63,6 @@ export default class OnChainProject extends Project {
   }
 
   async mintNFTs(metadata: MetadataMap[], authorizers?: ProjectAuthorizers): Promise<NFTMintResult[]> {
-
     const transaction = await OnChainGenerator.mint({
       contracts: this.networkConfig.contracts,
       contractName: this.contractName,
