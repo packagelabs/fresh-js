@@ -13,6 +13,10 @@ export default class TemplateGenerator {
 
     const template = Handlebars.compile(templateSource);
 
-    return template(context);
+    return template(context, {
+      allowedProtoMethods: {
+        asCadenceTypeString: true,
+      },
+    });
   }
 }

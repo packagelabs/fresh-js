@@ -37,9 +37,9 @@ type NFTRevealResult = {
 export default class OnChainMintRevealProject extends Project {
   async getContract(): Promise<string> {
     return OnChainMintRevealGenerator.contract({
-      contracts: this.networkConfig.contracts,
+      contracts: this.config.contracts,
       contractName: this.contractName,
-      fields: this.fields,
+      schema: this.schema,
     });
   }
 
@@ -89,7 +89,7 @@ export default class OnChainMintRevealProject extends Project {
     const hashes = hashedNFTs.map((nft) => nft.metadataHash);
 
     const transaction = await OnChainMintRevealGenerator.mint({
-      contracts: this.networkConfig.contracts,
+      contracts: this.config.contracts,
       contractName: this.contractName,
       // TODO: return error if contract address is not set
       contractAddress: this.contractAddress ?? '',
@@ -113,7 +113,7 @@ export default class OnChainMintRevealProject extends Project {
 
   private hashNFTs(metadata: MetadataMap[]): HashedNFT[] {
     return metadata.map((metadata) => {
-      const { hash, salt } = hashMetadata(this.fields, metadata);
+      const { hash, salt } = hashMetadata(this.schema, metadata);
 
       return {
         metadata,
@@ -144,11 +144,11 @@ export default class OnChainMintRevealProject extends Project {
     const salts = nfts.map((nft) => nft.metadataSalt);
 
     const transaction = await OnChainMintRevealGenerator.reveal({
-      contracts: this.networkConfig.contracts,
+      contracts: this.config.contracts,
       contractName: this.contractName,
       // TODO: return error if contract address is not set
       contractAddress: this.contractAddress ?? '',
-      fields: this.fields,
+      schema: this.schema,
     });
 
     const response = await fcl.send([
@@ -156,10 +156,10 @@ export default class OnChainMintRevealProject extends Project {
       fcl.args([
         fcl.arg(ids, t.Array(t.UInt64)),
         fcl.arg(salts, t.Array(t.String)),
-        ...this.fields.map((field) => {
+        ...this.schema.map((field) => {
           return fcl.arg(
             nfts.map((nft) => field.getValue(nft.metadata)),
-            t.Array(field.type.cadenceType),
+            t.Array(field.asCadenceTypeObject()),
           );
         }),
       ]),

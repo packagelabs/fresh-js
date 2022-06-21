@@ -18,9 +18,9 @@ type NFTMintResult = {
 export default class OnChainProject extends Project {
   async getContract(): Promise<string> {
     return OnChainGenerator.contract({
-      contracts: this.networkConfig.contracts,
+      contracts: this.config.contracts,
       contractName: this.contractName,
-      fields: this.fields,
+      schema: this.schema,
     });
   }
 
@@ -64,7 +64,7 @@ export default class OnChainProject extends Project {
 
   async mintNFTs(metadata: MetadataMap[], authorizers?: ProjectAuthorizers): Promise<NFTMintResult[]> {
     const transaction = await OnChainGenerator.mint({
-      contracts: this.networkConfig.contracts,
+      contracts: this.config.contracts,
       contractName: this.contractName,
       // TODO: return error if contract address is not set
       contractAddress: this.contractAddress ?? '',
@@ -73,10 +73,10 @@ export default class OnChainProject extends Project {
     const response = await fcl.send([
       fcl.transaction(transaction),
       fcl.args([
-        ...this.fields.map((field) => {
+        ...this.schema.map((field) => {
           return fcl.arg(
             metadata.map((values) => field.getValue(values)),
-            t.Array(field.type.cadenceType),
+            t.Array(field.asCadenceTypeObject()),
           );
         }),
       ]),

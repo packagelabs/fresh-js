@@ -37,13 +37,13 @@ pub contract {{ contractName }}: NonFungibleToken {
         pub let metadataSalt: String
 
         {{#each fields}}
-        pub let {{ this.name }}: {{ this.type.toCadence }}
+        pub let {{ this.name }}: {{ this.asCadenceTypeString }}
         {{/each}}
 
         init(
             metadataSalt: String,
             {{#each fields}}
-            {{ this.name }}: {{ this.type.toCadence }},
+            {{ this.name }}: {{ this.asCadenceTypeString }},
             {{/each}}
         ) {
             self.metadataSalt = metadataSalt

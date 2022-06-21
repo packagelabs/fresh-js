@@ -1,20 +1,20 @@
-import { Field } from '../metadata';
+import * as schema from '../schema';
 import TemplateGenerator, { Contracts } from './TemplateGenerator';
 
 export default class OnChainMintRevealGenerator extends TemplateGenerator {
   static async contract({
     contracts,
     contractName,
-    fields,
+    schema,
   }: {
     contracts: Contracts;
     contractName: string;
-    fields: Field[];
+    schema: schema.Field[];
   }): Promise<string> {
     return this.generate('../templates/cadence/on-chain-mint-reveal/contracts/NFT.cdc', {
       contracts,
       contractName,
-      fields,
+      fields: schema,
     });
   }
 
@@ -42,18 +42,18 @@ export default class OnChainMintRevealGenerator extends TemplateGenerator {
     contracts,
     contractName,
     contractAddress,
-    fields,
+    schema,
   }: {
     contracts: Contracts;
     contractName: string;
     contractAddress: string;
-    fields: Field[];
+    schema: schema.Field[];
   }): Promise<string> {
     return this.generate('../templates/cadence/on-chain-mint-reveal/transactions/reveal.cdc', {
       contracts,
       contractName,
       contractAddress,
-      fields,
+      fields: schema,
     });
   }
 }

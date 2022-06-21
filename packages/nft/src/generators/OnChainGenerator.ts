@@ -1,20 +1,20 @@
-import { Field } from '../metadata';
+import * as schema from '../schema';
 import TemplateGenerator, { Contracts } from './TemplateGenerator';
 
 export default class OnChainGenerator extends TemplateGenerator {
   static async contract({
     contracts,
     contractName,
-    fields,
+    schema,
   }: {
     contracts: Contracts;
     contractName: string;
-    fields: Field[];
+    schema: schema.Field[];
   }): Promise<string> {
     return this.generate('../templates/cadence/on-chain/contracts/NFT.cdc', {
       contracts,
       contractName,
-      fields,
+      fields: schema,
     });
   }
 

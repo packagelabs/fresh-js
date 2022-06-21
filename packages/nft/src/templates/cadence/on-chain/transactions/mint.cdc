@@ -3,7 +3,7 @@ import {{ contractName }} from {{ contractAddress }}
 
 transaction(
     {{#each fields}}
-    {{ this.name }}: [{{ this.type.toCadence }}],
+    {{ this.name }}: [{{ this.asCadenceTypeString }}],
     {{/each}}
 ) {
     

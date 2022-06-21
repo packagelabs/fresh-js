@@ -28,13 +28,13 @@ pub contract {{ contractName }}: NonFungibleToken {
         pub let id: UInt64
 
         {{#each fields}}
-        pub let {{ this.name }}: {{ this.type.toCadence }}
+        pub let {{ this.name }}: {{ this.asCadenceTypeString }}
         {{/each}}
 
         init(
             id: UInt64,
             {{#each fields}}
-            {{ this.name }}: {{ this.type.toCadence }},
+            {{ this.name }}: {{ this.asCadenceTypeString }},
             {{/each}}
         ) {
             self.id = id
@@ -169,7 +169,7 @@ pub contract {{ contractName }}: NonFungibleToken {
         //
         pub fun mintNFT(
             {{#each fields}}
-            {{ this.name }}: {{ this.type.toCadence }},
+            {{ this.name }}: {{ this.asCadenceTypeString }},
             {{/each}}
         ): @{{ contractName }}.NFT {
             let nft <- create {{ contractName }}.NFT(

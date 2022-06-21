@@ -7,7 +7,7 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@fresh-js/core": "^0.0.3",
+    "@fresh-js/core": "^0.0.4",
     "@fresh-js/crypto": "^0.0.4",
     "@onflow/fcl": "^1.0.2",
     "@onflow/types": "^1.0.1",

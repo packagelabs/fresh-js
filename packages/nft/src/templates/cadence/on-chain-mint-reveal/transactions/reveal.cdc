@@ -5,7 +5,7 @@ transaction(
     ids: [UInt64],
     metadataSalts: [String],
     {{#each fields}}
-    {{ this.name }}: [{{ this.type.toCadence }}],
+    {{ this.name }}: [{{ this.asCadenceTypeString }}],
     {{/each}}
 ) {
     

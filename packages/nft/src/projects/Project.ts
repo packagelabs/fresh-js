@@ -1,8 +1,8 @@
 // @ts-ignore
 import * as fcl from '@onflow/fcl';
 
-import { Authorizer, NetworkConfig } from '@fresh-js/core';
-import { Field, fieldTypes } from '../metadata';
+import { Authorizer, Config } from '@fresh-js/core';
+import * as schema from '../schema';
 
 export type ProjectAuthorizers = {
   minter?: Authorizer;
@@ -11,41 +11,43 @@ export type ProjectAuthorizers = {
 };
 
 export default class Project {
+  config: Config;
+
   contractName: string;
   contractAddress?: string;
-  networkConfig: NetworkConfig;
 
   defaultAuthorizer?: Authorizer;
   minter?: Authorizer;
   payer?: Authorizer;
   proposer?: Authorizer;
 
-  static defaultFields: Field[] = [
-    new Field('name', fieldTypes.String),
-    new Field('description', fieldTypes.String),
-    new Field('image', fieldTypes.IPFSImage),
+  static defaultFields: schema.Field[] = [
+    new schema.String('name'),
+    new schema.String('description'),
+    new schema.IPFSImage('image'),
   ];
 
-  fields: Field[];
+  schema: schema.Field[];
 
   constructor({
+    config,
     contractName,
     contractAddress,
-    fields,
-    networkConfig,
+    schema,
     authorizers,
   }: {
+    config: Config;
     contractName: string;
     contractAddress?: string;
-    fields: Field[];
-    networkConfig: NetworkConfig;
+    schema: schema.Field[];
     authorizers?: ProjectAuthorizers;
   }) {
+    this.config = config;
+
     this.contractName = contractName;
     this.contractAddress = contractAddress;
-    this.networkConfig = networkConfig;
 
-    this.fields = [...Project.defaultFields, ...fields];
+    this.schema = [...Project.defaultFields, ...schema];
 
     if (authorizers) {
       this.minter = authorizers.minter;
@@ -56,7 +58,7 @@ export default class Project {
     // TODO: find a better way to set this.
     //
     // Global config is messy but FCL requires it
-    fcl.config().put('accessNode.api', this.networkConfig.host);
+    fcl.config().put('accessNode.api', this.config.host);
   }
 
   setDefaultAuthorizer(auth: Authorizer) {
