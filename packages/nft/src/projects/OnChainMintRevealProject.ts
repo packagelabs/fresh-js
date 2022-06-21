@@ -3,11 +3,10 @@ import * as fcl from '@onflow/fcl';
 // @ts-ignore
 import * as t from '@onflow/types';
 
-import { Event, Authorizer } from '@fresh-js/core';
+import { Event, Authorizer, NetworkConfig } from '@fresh-js/core';
 import { PublicKey, SignatureAlgorithm, HashAlgorithm } from '@fresh-js/crypto';
 import { Field, fieldTypes, MetadataMap, hashMetadata } from '../metadata';
 import OnChainMintRevealGenerator from '../generators/OnChainMintRevealGenerator';
-import { NetworkConfig } from '..';
 import { ProjectAuthorizers } from '.';
 
 type HashedNFT = {
