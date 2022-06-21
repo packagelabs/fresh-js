@@ -1,9 +1,8 @@
-// TODO: use template variables rather than hardcoded testnet values
-import NonFungibleToken from 0x631e88ae7f1d7c20
-import MetadataViews from 0x631e88ae7f1d7c20
-import FungibleToken from 0x9a0766d93b6608b7
+import NonFungibleToken from {{ contracts.NonFungibleToken }}
+import MetadataViews from {{ contracts.MetadataViews }}
+import FungibleToken from {{ contracts.FungibleToken }}
 
-pub contract {{ name }}: NonFungibleToken {
+pub contract {{ contractName }}: NonFungibleToken {
 
     // Events
     //
@@ -20,7 +19,7 @@ pub contract {{ name }}: NonFungibleToken {
     pub let AdminStoragePath: StoragePath
 
     // totalSupply
-    // The total number of {{ name }} that have been minted
+    // The total number of {{ contractName }} that have been minted
     //
     pub var totalSupply: UInt64
 
@@ -44,7 +43,6 @@ pub contract {{ name }}: NonFungibleToken {
             {{/each}}
         }
 
-        {{#if onChainMetadata }}
         pub fun getViews(): [Type] {
             return [
                 Type<MetadataViews.Display>()
@@ -66,22 +64,21 @@ pub contract {{ name }}: NonFungibleToken {
 
             return nil
         }
-        {{/if}}
     }
 
-    pub resource interface {{ name }}CollectionPublic {
+    pub resource interface {{ contractName }}CollectionPublic {
         pub fun deposit(token: @NonFungibleToken.NFT)
         pub fun getIDs(): [UInt64]
         pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT
-        pub fun borrow{{ name }}(id: UInt64): &{{ name }}.NFT? {
+        pub fun borrow{{ contractName }}(id: UInt64): &{{ contractName }}.NFT? {
             post {
                 (result == nil) || (result?.id == id):
-                    "Cannot borrow {{ name }} reference: The ID of the returned reference is incorrect"
+                    "Cannot borrow {{ contractName }} reference: The ID of the returned reference is incorrect"
             }
         }
     }
 
-    pub resource Collection: {{ name }}CollectionPublic, NonFungibleToken.Provider, NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic {
+    pub resource Collection: {{ contractName }}CollectionPublic, NonFungibleToken.Provider, NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic {
         
         // dictionary of NFTs
         // NFT is a resource type with an `UInt64` ID field
@@ -104,7 +101,7 @@ pub contract {{ name }}: NonFungibleToken {
         // and adds the ID to the id array
         //
         pub fun deposit(token: @NonFungibleToken.NFT) {
-            let token <- token as! @{{ name }}.NFT
+            let token <- token as! @{{ contractName }}.NFT
 
             let id: UInt64 = token.id
 
@@ -131,13 +128,13 @@ pub contract {{ name }}: NonFungibleToken {
             return &self.ownedNFTs[id] as &NonFungibleToken.NFT
         }
 
-        // borrow{{ name }}
-        // Gets a reference to an NFT in the collection as a {{ name }}.
+        // borrow{{ contractName }}
+        // Gets a reference to an NFT in the collection as a {{ contractName }}.
         //
-        pub fun borrow{{ name }}(id: UInt64): &{{ name }}.NFT? {
+        pub fun borrow{{ contractName }}(id: UInt64): &{{ contractName }}.NFT? {
             if self.ownedNFTs[id] != nil {
                 let ref = &self.ownedNFTs[id] as auth &NonFungibleToken.NFT
-                return ref as! &{{ name }}.NFT
+                return ref as! &{{ contractName }}.NFT
             } else {
                 return nil
             }
@@ -174,9 +171,9 @@ pub contract {{ name }}: NonFungibleToken {
             {{#each fields}}
             {{ this.name }}: {{ this.type.toCadence }},
             {{/each}}
-        ): @{{ name }}.NFT {
-            let nft <- create {{ name }}.NFT(
-                id: {{ name }}.totalSupply,
+        ): @{{ contractName }}.NFT {
+            let nft <- create {{ contractName }}.NFT(
+                id: {{ contractName }}.totalSupply,
                 {{#each fields}}
                 {{ this.name }}: {{ this.name }},
                 {{/each}}
@@ -184,52 +181,52 @@ pub contract {{ name }}: NonFungibleToken {
 
             emit Minted(id: nft.id)
 
-            {{ name }}.totalSupply = {{ name }}.totalSupply + (1 as UInt64)
+            {{ contractName }}.totalSupply = {{ contractName }}.totalSupply + (1 as UInt64)
 
             return <- nft
         }
     }
 
     // fetch
-    // Get a reference to a {{ name }} from an account's Collection, if available.
-    // If an account does not have a {{ name }}.Collection, panic.
+    // Get a reference to a {{ contractName }} from an account's Collection, if available.
+    // If an account does not have a {{ contractName }}.Collection, panic.
     // If it has a collection but does not contain the itemID, return nil.
     // If it has a collection and that collection contains the itemID, return a reference to that.
     //
-    pub fun fetch(_ from: Address, itemID: UInt64): &{{ name }}.NFT? {
+    pub fun fetch(_ from: Address, itemID: UInt64): &{{ contractName }}.NFT? {
         let collection = getAccount(from)
-            .getCapability({{ name }}.CollectionPublicPath)!
-            .borrow<&{ {{ name }}.{{ name }}CollectionPublic }>()
+            .getCapability({{ contractName }}.CollectionPublicPath)!
+            .borrow<&{ {{ contractName }}.{{ contractName }}CollectionPublic }>()
             ?? panic("Couldn't get collection")
 
-        // We trust {{ name }}.Collection.borow{{ name }} to get the correct itemID
+        // We trust {{ contractName }}.Collection.borow{{ contractName }} to get the correct itemID
         // (it checks it before returning it).
-        return collection.borrow{{ name }}(id: itemID)
+        return collection.borrow{{ contractName }}(id: itemID)
     }
 
     // initializer
     //
-    init() {
+    init(admin: AuthAccount) {
         // Set our named paths
-        self.CollectionStoragePath = /storage/{{ name }}Collection
-        self.CollectionPublicPath = /public/{{ name }}Collection
-        self.CollectionPrivatePath = /private/{{ name }}Collection
-        self.AdminStoragePath = /storage/{{ name }}Admin
+        self.CollectionStoragePath = /storage/{{ contractName }}Collection
+        self.CollectionPublicPath = /public/{{ contractName }}Collection
+        self.CollectionPrivatePath = /private/{{ contractName }}Collection
+        self.AdminStoragePath = /storage/{{ contractName }}Admin
 
         // Initialize the total supply
         self.totalSupply = 0
 
-        let collection <- {{ name }}.createEmptyCollection()
+        let collection <- {{ contractName }}.createEmptyCollection()
         
-        self.account.save(<- collection, to: {{ name }}.CollectionStoragePath)
+        admin.save(<- collection, to: {{ contractName }}.CollectionStoragePath)
 
-        self.account.link<&{{ name }}.Collection>({{ name }}.CollectionPrivatePath, target: {{ name }}.CollectionStoragePath)
+        admin.link<&{{ contractName }}.Collection>({{ contractName }}.CollectionPrivatePath, target: {{ contractName }}.CollectionStoragePath)
 
-        self.account.link<&{{ name }}.Collection{NonFungibleToken.CollectionPublic, {{ name }}.{{ name }}CollectionPublic}>({{ name }}.CollectionPublicPath, target: {{ name }}.CollectionStoragePath)
+        admin.link<&{{ contractName }}.Collection{NonFungibleToken.CollectionPublic, {{ contractName }}.{{ contractName }}CollectionPublic}>({{ contractName }}.CollectionPublicPath, target: {{ contractName }}.CollectionStoragePath)
         
         // Create an admin resource and save it to storage
-        let admin <- create Admin()
-        self.account.save(<- admin, to: self.AdminStoragePath)
+        let adminResource <- create Admin()
+        admin.save(<- adminResource, to: self.AdminStoragePath)
 
         emit ContractInitialized()
     }

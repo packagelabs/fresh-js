@@ -1,6 +1,4 @@
-// TODO: use template variables rather than hardcoded testnet values
-// 0x631e88ae7f1d7c20 is the address from the testnet nft interface contract
-import NonFungibleToken from 0x631e88ae7f1d7c20
+import NonFungibleToken from {{ contracts.NonFungibleToken }}
 import {{ contractName }} from {{ contractAddress }}
 
 transaction(

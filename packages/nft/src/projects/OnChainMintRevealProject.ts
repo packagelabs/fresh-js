@@ -3,11 +3,11 @@ import * as fcl from '@onflow/fcl';
 // @ts-ignore
 import * as t from '@onflow/types';
 
-import { Event, Authorizer, NetworkConfig } from '@fresh-js/core';
+import { Event } from '@fresh-js/core';
 import { PublicKey, SignatureAlgorithm, HashAlgorithm } from '@fresh-js/crypto';
-import { Field, fieldTypes, MetadataMap, hashMetadata } from '../metadata';
+import { MetadataMap, hashMetadata } from '../metadata';
 import OnChainMintRevealGenerator from '../generators/OnChainMintRevealGenerator';
-import { ProjectAuthorizers } from '.';
+import Project, { ProjectAuthorizers } from './Project';
 
 type HashedNFT = {
   metadata: MetadataMap;
@@ -34,70 +34,7 @@ type NFTRevealResult = {
   transactionId: string;
 };
 
-export default class OnChainMintRevealProject {
-  contractName: string;
-  contractAddress?: string;
-  networkConfig: NetworkConfig;
-
-  defaultAuthorizer?: Authorizer;
-  minter?: Authorizer;
-  payer?: Authorizer;
-  proposer?: Authorizer;
-
-  static defaultFields: Field[] = [
-    new Field('name', fieldTypes.String),
-    new Field('description', fieldTypes.String),
-    new Field('image', fieldTypes.IPFSImage),
-  ];
-
-  fields: Field[];
-
-  constructor({
-    contractName,
-    contractAddress,
-    fields,
-    networkConfig,
-    authorizers,
-  }: {
-    contractName: string;
-    contractAddress?: string;
-    fields: Field[];
-    networkConfig: NetworkConfig;
-    authorizers?: ProjectAuthorizers;
-  }) {
-    this.contractName = contractName;
-    this.contractAddress = contractAddress;
-    this.networkConfig = networkConfig;
-
-    this.fields = [...OnChainMintRevealProject.defaultFields, ...fields];
-
-    if (authorizers) {
-      this.minter = authorizers.minter;
-      this.payer = authorizers.payer;
-      this.proposer = authorizers.proposer;
-    }
-
-    // TODO: find a better way to set this.
-    //
-    // Global config is messy but FCL requires it
-    fcl.config().put('accessNode.api', this.networkConfig.host);
-  }
-
-  setDefaultAuthorizer(auth: Authorizer) {
-    this.defaultAuthorizer = auth;
-  }
-
-  setMinter(auth: Authorizer) {
-    this.minter = auth;
-  }
-
-  setPayer(auth: Authorizer) {
-    this.payer = auth;
-  }
-
-  setProposer(auth: Authorizer) {
-    this.proposer = auth;
-  }
+export default class OnChainMintRevealProject extends Project {
 
   async getContract(): Promise<string> {
     return OnChainMintRevealGenerator.contract({
@@ -145,32 +82,6 @@ export default class OnChainMintRevealProject {
     this.contractAddress = contractAddress;
 
     return contractAddress;
-  }
-
-  private getAuthorizers(authorizers?: ProjectAuthorizers) {
-    const minterAuth = authorizers?.minter ?? this.minter ?? this.defaultAuthorizer;
-    if (!minterAuth) {
-      // TODO: improve error message
-      throw 'must specify admin account';
-    }
-
-    const payerAuth = authorizers?.payer ?? this.payer ?? this.defaultAuthorizer;
-    if (!payerAuth) {
-      // TODO: improve error message
-      throw 'must specify payer account';
-    }
-
-    const proposerAuth = authorizers?.proposer ?? this.proposer ?? this.defaultAuthorizer;
-    if (!proposerAuth) {
-      // TODO: improve error message
-      throw 'must specify proposer account';
-    }
-
-    return [
-      fcl.payer(payerAuth.toFCLAuthorizationFunction()),
-      fcl.proposer(proposerAuth.toFCLAuthorizationFunction()),
-      fcl.authorizations([minterAuth.toFCLAuthorizationFunction()]),
-    ];
   }
 
   async mintNFTs(metadata: MetadataMap[], authorizers?: ProjectAuthorizers): Promise<NFTMintResult[]> {

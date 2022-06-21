@@ -268,10 +268,10 @@ pub contract {{ contractName }}: NonFungibleToken {
     //
     init(admin: AuthAccount, placeholderImage: String) {
         // Set our named paths
-        self.CollectionStoragePath = /storage/{{ contractName }}Collection1
-        self.CollectionPublicPath = /public/{{ contractName }}Collection1
-        self.CollectionPrivatePath = /private/{{ contractName }}Collection1
-        self.AdminStoragePath = /storage/{{ contractName }}Admin1
+        self.CollectionStoragePath = /storage/{{ contractName }}Collection
+        self.CollectionPublicPath = /public/{{ contractName }}Collection
+        self.CollectionPrivatePath = /private/{{ contractName }}Collection
+        self.AdminStoragePath = /storage/{{ contractName }}Admin
 
         // Initialize the total supply
         self.totalSupply = 0
