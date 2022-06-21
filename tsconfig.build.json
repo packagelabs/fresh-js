@@ -1,0 +1,9 @@
+{
+  "references": [
+    { "path": "./packages/core/tsconfig.build.json" },
+    { "path": "./packages/crypto/tsconfig.build.json" },
+    { "path": "./packages/nft/tsconfig.build.json" },
+  ],
+  "files": [],
+  "include": []
+}
