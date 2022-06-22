@@ -14,7 +14,7 @@ export const TestnetConfig: Config = {
     FungibleToken: '0x9a0766d93b6608b7',
     NonFungibleToken: '0x631e88ae7f1d7c20',
     MetadataViews: '0x631e88ae7f1d7c20',
-    NFTClaimSale: '0x81bb4cd7789520d6',
+    NFTClaimSale: '0xf6908f3ab6c14d81',
   },
 };
 
@@ -24,7 +24,7 @@ export const MainnetConfig: Config = {
     FungibleToken: '0xf233dcee88fe0abe',
     NonFungibleToken: '0x1d7e57aa55817448',
     MetadataViews: '0x1d7e57aa55817448',
-    NFTClaimSale: '', // TODO: deploy NFTClaimSale
+    NFTClaimSale: '', // TODO: deploy NFTClaimSale to mainnet
   },
 };
 
