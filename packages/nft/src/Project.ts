@@ -2,24 +2,25 @@
 import * as fcl from '@onflow/fcl';
 
 import { Authorizer, Config } from '@fresh-js/core';
-import * as schema from '../schema';
+import * as schema from './schema';
 
 export type ProjectAuthorizers = {
+  default?: Authorizer;
   minter?: Authorizer;
   payer?: Authorizer;
   proposer?: Authorizer;
 };
 
 export default class Project {
+  
   config: Config;
 
   contractName: string;
   contractAddress?: string;
 
-  defaultAuthorizer?: Authorizer;
-  minter?: Authorizer;
-  payer?: Authorizer;
-  proposer?: Authorizer;
+  schema: schema.Field[];
+
+  authorizers: ProjectAuthorizers;
 
   static defaultFields: schema.Field[] = [
     new schema.String('name'),
@@ -27,20 +28,18 @@ export default class Project {
     new schema.IPFSImage('image'),
   ];
 
-  schema: schema.Field[];
-
   constructor({
     config,
     contractName,
     contractAddress,
     schema,
-    authorizers,
+    authorizers
   }: {
     config: Config;
     contractName: string;
     contractAddress?: string;
     schema: schema.Field[];
-    authorizers?: ProjectAuthorizers;
+    authorizers: ProjectAuthorizers;
   }) {
     this.config = config;
 
@@ -49,11 +48,7 @@ export default class Project {
 
     this.schema = [...Project.defaultFields, ...schema];
 
-    if (authorizers) {
-      this.minter = authorizers.minter;
-      this.payer = authorizers.payer;
-      this.proposer = authorizers.proposer;
-    }
+    this.authorizers = authorizers;
 
     // TODO: find a better way to set this.
     //
@@ -61,36 +56,24 @@ export default class Project {
     fcl.config().put('accessNode.api', this.config.host);
   }
 
-  setDefaultAuthorizer(auth: Authorizer) {
-    this.defaultAuthorizer = auth;
+  setContractAddress(address: string) {
+    this.contractAddress = address;
   }
 
-  setMinter(auth: Authorizer) {
-    this.minter = auth;
-  }
-
-  setPayer(auth: Authorizer) {
-    this.payer = auth;
-  }
-
-  setProposer(auth: Authorizer) {
-    this.proposer = auth;
-  }
-
-  protected getAuthorizers(authorizers?: ProjectAuthorizers) {
-    const minterAuth = authorizers?.minter ?? this.minter ?? this.defaultAuthorizer;
+  getAuthorizers() {
+    const minterAuth = this.authorizers.minter ?? this.authorizers.default;
     if (!minterAuth) {
       // TODO: improve error message
       throw 'must specify admin account';
     }
 
-    const payerAuth = authorizers?.payer ?? this.payer ?? this.defaultAuthorizer;
+    const payerAuth = this.authorizers.payer ?? this.authorizers.default;
     if (!payerAuth) {
       // TODO: improve error message
       throw 'must specify payer account';
     }
 
-    const proposerAuth = authorizers?.proposer ?? this.proposer ?? this.defaultAuthorizer;
+    const proposerAuth = this.authorizers.proposer ?? this.authorizers.default;
     if (!proposerAuth) {
       // TODO: improve error message
       throw 'must specify proposer account';

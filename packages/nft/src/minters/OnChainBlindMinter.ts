@@ -7,7 +7,7 @@ import { Event } from '@fresh-js/core';
 import { PublicKey, SignatureAlgorithm, HashAlgorithm } from '@fresh-js/crypto';
 import { MetadataMap, hashMetadata } from '../metadata';
 import OnChainMintRevealGenerator from '../generators/OnChainMintRevealGenerator';
-import Project, { ProjectAuthorizers } from './Project';
+import Minter from './Minter';
 
 type HashedNFT = {
   metadata: MetadataMap;
@@ -34,20 +34,19 @@ type NFTRevealResult = {
   transactionId: string;
 };
 
-export default class OnChainMintRevealProject extends Project {
+export default class OnChainMintRevealProject extends Minter {
   async getContract(): Promise<string> {
     return OnChainMintRevealGenerator.contract({
-      contracts: this.config.contracts,
-      contractName: this.contractName,
-      schema: this.schema,
+      contracts: this.project.config.contracts,
+      contractName: this.project.contractName,
+      schema: this.project.schema,
     });
   }
 
   async deployContract(
     publicKey: PublicKey,
     hashAlgo: HashAlgorithm,
-    placeholderImage: string,
-    authorizers?: ProjectAuthorizers,
+    placeholderImage: string
   ): Promise<string> {
     const transaction = await OnChainMintRevealGenerator.deploy();
 
@@ -59,7 +58,7 @@ export default class OnChainMintRevealProject extends Project {
     const response = await fcl.send([
       fcl.transaction(transaction),
       fcl.args([
-        fcl.arg(this.contractName, t.String),
+        fcl.arg(this.project.contractName, t.String),
         fcl.arg(contractCodeHex, t.String),
         fcl.arg(publicKey.toHex(), t.String),
         fcl.arg(SignatureAlgorithm.toCadence(sigAlgo), t.UInt8),
@@ -68,7 +67,7 @@ export default class OnChainMintRevealProject extends Project {
       ]),
       fcl.limit(1000),
 
-      ...this.getAuthorizers(authorizers),
+      ...this.project.getAuthorizers(),
     ]);
 
     // TODO: handle error
@@ -78,21 +77,21 @@ export default class OnChainMintRevealProject extends Project {
 
     const contractAddress = accountCreatedEvent.data['address'];
 
-    this.contractAddress = contractAddress;
+    this.project.setContractAddress(contractAddress);
 
     return contractAddress;
   }
 
-  async mintNFTs(metadata: MetadataMap[], authorizers?: ProjectAuthorizers): Promise<NFTMintResult[]> {
+  async mintNFTs(metadata: MetadataMap[]): Promise<NFTMintResult[]> {
     const hashedNFTs = this.hashNFTs(metadata);
 
     const hashes = hashedNFTs.map((nft) => nft.metadataHash);
 
     const transaction = await OnChainMintRevealGenerator.mint({
-      contracts: this.config.contracts,
-      contractName: this.contractName,
+      contracts: this.project.config.contracts,
+      contractName: this.project.contractName,
       // TODO: return error if contract address is not set
-      contractAddress: this.contractAddress ?? '',
+      contractAddress: this.project.contractAddress ?? '',
     });
 
     const response = await fcl.send([
@@ -100,7 +99,7 @@ export default class OnChainMintRevealProject extends Project {
       fcl.args([fcl.arg(hashes, t.Array(t.String))]),
       fcl.limit(1000),
 
-      ...this.getAuthorizers(authorizers),
+      ...this.project.getAuthorizers(),
     ]);
 
     const { transactionId } = response;
@@ -113,7 +112,7 @@ export default class OnChainMintRevealProject extends Project {
 
   private hashNFTs(metadata: MetadataMap[]): HashedNFT[] {
     return metadata.map((metadata) => {
-      const { hash, salt } = hashMetadata(this.schema, metadata);
+      const { hash, salt } = hashMetadata(this.project.schema, metadata);
 
       return {
         metadata,
@@ -139,16 +138,16 @@ export default class OnChainMintRevealProject extends Project {
     });
   }
 
-  async revealNFTs(nfts: NFTRevealInput[], authorizers?: ProjectAuthorizers): Promise<NFTRevealResult[]> {
+  async revealNFTs(nfts: NFTRevealInput[]): Promise<NFTRevealResult[]> {
     const ids = nfts.map((nft) => nft.id);
     const salts = nfts.map((nft) => nft.metadataSalt);
 
     const transaction = await OnChainMintRevealGenerator.reveal({
-      contracts: this.config.contracts,
-      contractName: this.contractName,
+      contracts: this.project.config.contracts,
+      contractName: this.project.contractName,
       // TODO: return error if contract address is not set
-      contractAddress: this.contractAddress ?? '',
-      schema: this.schema,
+      contractAddress: this.project.contractAddress ?? '',
+      schema: this.project.schema,
     });
 
     const response = await fcl.send([
@@ -156,7 +155,7 @@ export default class OnChainMintRevealProject extends Project {
       fcl.args([
         fcl.arg(ids, t.Array(t.UInt64)),
         fcl.arg(salts, t.Array(t.String)),
-        ...this.schema.map((field) => {
+        ...this.project.schema.map((field) => {
           return fcl.arg(
             nfts.map((nft) => field.getValue(nft.metadata)),
             t.Array(field.asCadenceTypeObject()),
@@ -165,7 +164,7 @@ export default class OnChainMintRevealProject extends Project {
       ]),
       fcl.limit(1000),
 
-      ...this.getAuthorizers(authorizers),
+      ...this.project.getAuthorizers(),
     ]);
 
     const { transactionId } = response;
