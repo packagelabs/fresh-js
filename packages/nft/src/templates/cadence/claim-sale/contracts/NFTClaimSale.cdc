@@ -12,7 +12,7 @@ pub contract NFTClaimSale {
         pub let price: UFix64
         pub let size: Int
         pub fun supply(): Int
-        pub fun isComplete(): Bool
+        pub fun isActive(): Bool
         pub fun claim(payment: @FungibleToken.Vault): @NonFungibleToken.NFT
     }
 

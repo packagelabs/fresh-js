@@ -42,4 +42,20 @@ export default class ClaimSaleGenerator extends TemplateGenerator {
       contractAddress,
     });
   }
+
+  static async claimNFT({
+    contracts,
+    contractName,
+    contractAddress,
+  }: {
+    contracts: Contracts;
+    contractName: string;
+    contractAddress: string;
+  }): Promise<string> {
+    return this.generate('../templates/cadence/claim-sale/transactions/claim_nft.cdc', {
+      contracts,
+      contractName,
+      contractAddress,
+    });
+  }
 }

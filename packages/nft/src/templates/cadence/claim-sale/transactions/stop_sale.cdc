@@ -4,7 +4,7 @@ transaction {
     
     prepare(signer: AuthAccount) {
 
-        signer.unlink(NFTClaimSale.DropPublicPath)
+        signer.unlink(NFTClaimSale.SalePublicPath)
 
         let sale <- signer.load<@NFTClaimSale.Sale>(from: NFTClaimSale.SaleStoragePath)
 

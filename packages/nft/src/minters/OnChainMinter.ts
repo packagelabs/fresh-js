@@ -68,6 +68,7 @@ export default class OnChainMinter extends Minter {
       contractName: this.project.contractName,
       // TODO: return error if contract address is not set
       contractAddress: this.project.contractAddress ?? '',
+      schema: this.project.schema
     });
 
     const response = await fcl.send([

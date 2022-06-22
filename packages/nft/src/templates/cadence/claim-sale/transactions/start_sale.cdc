@@ -27,7 +27,7 @@ transaction(price: UFix64) {
         signer.save(<- sale, to: NFTClaimSale.SaleStoragePath)
 
         signer.link<&NFTClaimSale.Sale{NFTClaimSale.SalePublic}>(
-            NFTClaimSale.Sa;ePublicPath, 
+            NFTClaimSale.SalePublicPath, 
             target: NFTClaimSale.SaleStoragePath
         )
     }
