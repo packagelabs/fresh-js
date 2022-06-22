@@ -89,24 +89,6 @@ class IPFSImage extends BaseField implements Field {
   }
 }
 
-class IPFSMetadata extends BaseField implements Field {
-  getValue(metadata: MetadataMap): MetadataValue {
-    if (!metadata.image) {
-      throw new Error("Error generating metadata, must supply an 'image' property");
-    }
-
-    if (metadata.attributes) {
-      try {
-        metadata.attributes = JSON.parse(metadata.attributes as string);
-      } catch (e) {
-        throw new Error("Error generating metadata, 'attributes' must be valid JSON");
-      }
-    }
-
-    return metadata;
-  }
-}
-
 interface FieldOption {
   id: string;
   label: string;
@@ -169,4 +151,4 @@ function parseFields(fields: { name: string; type: string }[]): Field[] {
   });
 }
 
-export { Field, String, Int, UInt, Fix64, UFix64, Bool, IPFSImage, IPFSMetadata, FieldOption, fields, parseFields };
+export { Field, String, Int, UInt, Fix64, UFix64, Bool, IPFSImage, FieldOption, fields, parseFields };
