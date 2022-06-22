@@ -41,6 +41,22 @@ const metadataSchema = [
 ];
 ```
 
+#### Default schema fields
+
+By default, Fresh NFT defines the following fields for every NFT project.
+
+Creator-defined fields are appended to the default fields.
+
+```js
+import { schema } from '@fresh-js/nft';
+
+const defaultSchema = [
+  new schema.String('name'),
+  new schema.String('description'),
+  new schema.IPFSImage('image')
+];
+```
+
 #### Supported fields
 
 - `String`
