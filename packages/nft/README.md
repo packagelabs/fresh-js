@@ -27,9 +27,10 @@ const project = new Project({
 
 ### Metadata schema
 
-A metadata schema is a list of fields that define the structure of an NFT project.
+A metadata schema defines the structure of an NFT project.
 
-In the future, Fresh NFT may support more complex schema models (e.g. sets and editions).
+Today, a schema is simply a list of field types. 
+However, Fresh NFT may support more complex schema models in the future (e.g. sets and editions).
 
 ```js
 import { schema } from '@fresh-js/nft';
