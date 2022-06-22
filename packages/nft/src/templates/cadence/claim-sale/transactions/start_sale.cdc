@@ -1,9 +1,8 @@
 import {{ contractName }} from {{ contractAddress }}
 
-// TODO: use template variables rather than hardcoded testnet values
-import NFTQueueDrop from 0x81bb4cd7789520d6
-import NonFungibleToken from 0x631e88ae7f1d7c20
-import FungibleToken from 0x9a0766d93b6608b7
+import NFTClaimSale from {{ contracts.NFTClaimSale }}
+import FungibleToken from {{ contracts.FungibleToken }}
+import NonFungibleToken from {{ contracts.NonFungibleToken }}
 
 transaction(price: UFix64) {
 
@@ -18,18 +17,18 @@ transaction(price: UFix64) {
         let paymentReceiver = signer
             .getCapability<&{FungibleToken.Receiver}>(/public/flowTokenReceiver)!
 
-        let drop <- NFTQueueDrop.createDrop(
+        let sale <- NFTClaimSale.createSale(
             nftType: Type<@{{ contractName }}.NFT>(),
             collection: collection,
             paymentReceiver: paymentReceiver,
             paymentPrice: price,
         )
 
-        signer.save(<- drop, to: NFTQueueDrop.DropStoragePath)
+        signer.save(<- sale, to: NFTClaimSale.SaleStoragePath)
 
-        signer.link<&NFTQueueDrop.Drop{NFTQueueDrop.DropPublic}>(
-            NFTQueueDrop.DropPublicPath, 
-            target: NFTQueueDrop.DropStoragePath
+        signer.link<&NFTClaimSale.Sale{NFTClaimSale.SalePublic}>(
+            NFTClaimSale.SalePublicPath, 
+            target: NFTClaimSale.SaleStoragePath
         )
     }
 }

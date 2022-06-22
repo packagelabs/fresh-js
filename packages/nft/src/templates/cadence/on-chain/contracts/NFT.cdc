@@ -125,7 +125,7 @@ pub contract {{ contractName }}: NonFungibleToken {
         // so that the caller can read its metadata and call its methods
         //
         pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT {
-            return &self.ownedNFTs[id] as &NonFungibleToken.NFT
+            return (&self.ownedNFTs[id] as &NonFungibleToken.NFT?)!
         }
 
         // borrow{{ contractName }}
@@ -133,11 +133,11 @@ pub contract {{ contractName }}: NonFungibleToken {
         //
         pub fun borrow{{ contractName }}(id: UInt64): &{{ contractName }}.NFT? {
             if self.ownedNFTs[id] != nil {
-                let ref = &self.ownedNFTs[id] as auth &NonFungibleToken.NFT
+                let ref = (&self.ownedNFTs[id] as auth &NonFungibleToken.NFT?)!
                 return ref as! &{{ contractName }}.NFT
-            } else {
-                return nil
             }
+
+            return nil
         }
 
         // destructor

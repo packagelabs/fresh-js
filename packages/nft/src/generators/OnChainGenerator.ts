@@ -26,15 +26,18 @@ export default class OnChainGenerator extends TemplateGenerator {
     contracts,
     contractName,
     contractAddress,
+    schema,
   }: {
     contracts: Contracts;
     contractName: string;
     contractAddress: string;
+    schema: schema.Field[];
   }): Promise<string> {
     return this.generate('../templates/cadence/on-chain/transactions/mint.cdc', {
       contracts,
       contractName,
       contractAddress,
+      fields: schema
     });
   }
 }
