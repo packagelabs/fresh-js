@@ -4,7 +4,7 @@ import * as fcl from '@onflow/fcl';
 import { Authorizer, Config } from '@fresh-js/core';
 import * as schema from '../schema';
 
-export default interface Collection {
+export default interface NFTCollection {
   config: Config;
 
   name: string;
@@ -26,7 +26,7 @@ export type CollectionAuthorizers = {
   proposer?: Authorizer;
 };
 
-export class BaseCollection implements Collection {
+export class BaseCollection implements NFTCollection {
   config: Config;
 
   name: string;

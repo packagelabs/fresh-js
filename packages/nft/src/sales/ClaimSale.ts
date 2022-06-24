@@ -6,12 +6,12 @@ import * as t from '@onflow/types';
 
 import ClaimSaleGenerator from '../generators/ClaimSaleGenerator';
 import { Authorizer, Event } from '@fresh-js/core';
-import Collection from '../collections/Collection';
+import NFTCollection from '../collections/NFTCollection';
 
 export default class ClaimSale {
-  collection: Collection;
+  collection: NFTCollection;
 
-  constructor(collection: Collection) {
+  constructor(collection: NFTCollection) {
     this.collection = collection;
   }
 
