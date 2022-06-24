@@ -80,19 +80,13 @@ const defaultSchema = [
 
 ## Configure the collection owner
 
-You will need to configure the collection's authorizers before you can
-deploy a contract or mint NFTs. Authorizers are the accounts that will
+You will need to configure a collection owner before you can
+deploy a contract or mint NFTs. The owner is the accounts that will
 mint, reveal and manage your NFTs.
 
-There are three authorizer roles:
-
-|Name|Actions|
-|----|-------|
-|Minter|Mint, reveal and distribute NFTs|
-|Payer |Pays all transaction fees for mint, reveal and distribution.
-|Proposer|Signs as the proposer on all transactions.
-
 ### Define an authorizer
+
+The owner is defined as an `Authorizer`, an object that can authorizer transactions for a specific Flow account.
 
 The snippet below shows how to define an authorizer from an ECDSA private key.
 
@@ -130,7 +124,7 @@ collection.setOwner(authorizer);
 
 ### Use a separate payer or proposer
 
-You can optionally specify a separate payer or proposer authorizers.
+You can optionally specify separate payer or proposer authorizers.
 This is useful if you would like to create multiple collections, each with a separate owner, but pay for all fees from a central account.
 
 There are three authorizer roles:
