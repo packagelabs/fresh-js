@@ -7,7 +7,7 @@ import { Event } from '@fresh-js/core';
 import { PublicKey, SignatureAlgorithm, HashAlgorithm } from '@fresh-js/crypto';
 import { MetadataMap } from '../metadata';
 import OnChainGenerator from '../generators/OnChainGenerator';
-import Minter from './Minter';
+import { BaseCollection } from './Collection';
 
 type NFTMintResult = {
   id: string;
@@ -15,20 +15,16 @@ type NFTMintResult = {
   transactionId: string;
 };
 
-export default class OnChainMinter extends Minter {
-
+export default class OnChainCollection extends BaseCollection {
   async getContract(): Promise<string> {
     return OnChainGenerator.contract({
-      contracts: this.project.config.contracts,
-      contractName: this.project.contractName,
-      schema: this.project.schema,
+      contracts: this.config.contracts,
+      contractName: this.name,
+      schema: this.schema,
     });
   }
 
-  async deployContract(
-    publicKey: PublicKey,
-    hashAlgo: HashAlgorithm,
-  ): Promise<string> {
+  async deployContract(publicKey: PublicKey, hashAlgo: HashAlgorithm): Promise<string> {
     const transaction = await OnChainGenerator.deploy();
 
     const contractCode = await this.getContract();
@@ -39,7 +35,7 @@ export default class OnChainMinter extends Minter {
     const response = await fcl.send([
       fcl.transaction(transaction),
       fcl.args([
-        fcl.arg(this.project.contractName, t.String),
+        fcl.arg(this.name, t.String),
         fcl.arg(contractCodeHex, t.String),
         fcl.arg(publicKey.toHex(), t.String),
         fcl.arg(SignatureAlgorithm.toCadence(sigAlgo), t.UInt8),
@@ -47,7 +43,7 @@ export default class OnChainMinter extends Minter {
       ]),
       fcl.limit(1000),
 
-      ...this.project.getAuthorizers(),
+      ...this.getAuthorizers(),
     ]);
 
     // TODO: handle error
@@ -55,26 +51,26 @@ export default class OnChainMinter extends Minter {
 
     const accountCreatedEvent: Event = events.find((event: Event) => event.type === 'flow.AccountCreated');
 
-    const contractAddress = accountCreatedEvent.data['address'];
+    const address = accountCreatedEvent.data['address'];
 
-    this.project.setContractAddress(contractAddress);
+    this.setAddress(address);
 
-    return contractAddress;
+    return address;
   }
 
   async mintNFTs(metadata: MetadataMap[]): Promise<NFTMintResult[]> {
     const transaction = await OnChainGenerator.mint({
-      contracts: this.project.config.contracts,
-      contractName: this.project.contractName,
+      contracts: this.config.contracts,
+      contractName: this.name,
       // TODO: return error if contract address is not set
-      contractAddress: this.project.contractAddress ?? '',
-      schema: this.project.schema
+      contractAddress: this.address ?? '',
+      schema: this.schema,
     });
 
     const response = await fcl.send([
       fcl.transaction(transaction),
       fcl.args([
-        ...this.project.schema.map((field) => {
+        ...this.schema.map((field) => {
           return fcl.arg(
             metadata.map((values) => field.getValue(values)),
             t.Array(field.asCadenceTypeObject()),
@@ -83,7 +79,7 @@ export default class OnChainMinter extends Minter {
       ]),
       fcl.limit(1000),
 
-      ...this.project.getAuthorizers(),
+      ...this.getAuthorizers(),
     ]);
 
     const { transactionId } = response;

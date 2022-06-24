@@ -37,7 +37,7 @@ export default class OnChainGenerator extends TemplateGenerator {
       contracts,
       contractName,
       contractAddress,
-      fields: schema
+      fields: schema,
     });
   }
 }
