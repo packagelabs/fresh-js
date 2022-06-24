@@ -10,9 +10,11 @@ It also powers [Freshmint](https://github.com/packagelabs/freshmint).
 npm i @fresh-js/nft
 ```
 
-## Create a collection
+## Create an NFT collection
 
-An NFT collection is a set of NFTs minted from a single contract.
+An NFT collection is a set of NFTs that share the same type structure.
+A collection is defined by a Cadence contract that implements the [Flow NFT interface](https://github.com/onflow/flow-nft).
+All NFTs in a collection are minted by the same contract.
 
 Fresh NFT supports the following collection types:
 
