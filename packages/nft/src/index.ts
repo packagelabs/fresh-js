@@ -7,4 +7,4 @@ import ClaimSale from './sales/ClaimSale';
 
 export { ClaimSale };
 
-export * as schema from './schema';
+export * as metadata from './metadata';

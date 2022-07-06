@@ -1,13 +1,12 @@
 import { randomBytes } from 'crypto';
 import { SHA3_256Hasher } from '@fresh-js/crypto';
 
-import * as schema from './schema';
+import { MetadataMap } from '.';
+import { Schema } from './schema';
 
-export type MetadataMap = { [key: string]: MetadataValue };
-export type MetadataValue = { [key: string]: MetadataValue } | string;
 export type MetadataHash = { hash: Buffer; salt: Buffer };
 
-export function hashMetadata(schema: schema.Field[], metadata: MetadataMap): MetadataHash {
+export function hashMetadata(schema: Schema, metadata: MetadataMap): MetadataHash {
   // TODO: make hasher configurable
   const hasher = new SHA3_256Hasher();
 
@@ -15,8 +14,13 @@ export function hashMetadata(schema: schema.Field[], metadata: MetadataMap): Met
 
   let message = salt;
 
-  schema.forEach((field) => {
+  console.log(metadata);
+
+  schema.fields.forEach((field) => {
     const value = field.getValue(metadata);
+
+    console.log(field.name, value);
+
     const serialized = field.serializeValue(value);
 
     message = Buffer.concat([message, serialized]);

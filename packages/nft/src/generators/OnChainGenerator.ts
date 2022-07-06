@@ -1,4 +1,4 @@
-import * as schema from '../schema';
+import * as metadata from '../metadata';
 import TemplateGenerator, { Contracts } from './TemplateGenerator';
 
 export default class OnChainGenerator extends TemplateGenerator {
@@ -9,12 +9,12 @@ export default class OnChainGenerator extends TemplateGenerator {
   }: {
     contracts: Contracts;
     contractName: string;
-    schema: schema.Field[];
+    schema: metadata.Schema;
   }): Promise<string> {
     return this.generate('../templates/cadence/on-chain/contracts/NFT.cdc', {
       contracts,
       contractName,
-      fields: schema,
+      fields: schema.fields,
     });
   }
 
@@ -31,13 +31,13 @@ export default class OnChainGenerator extends TemplateGenerator {
     contracts: Contracts;
     contractName: string;
     contractAddress: string;
-    schema: schema.Field[];
+    schema: metadata.Schema;
   }): Promise<string> {
     return this.generate('../templates/cadence/on-chain/transactions/mint.cdc', {
       contracts,
       contractName,
       contractAddress,
-      fields: schema,
+      fields: schema.fields,
     });
   }
 }

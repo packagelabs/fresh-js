@@ -7,7 +7,7 @@ import { Event } from '@fresh-js/core';
 import { PublicKey, SignatureAlgorithm, HashAlgorithm } from '@fresh-js/crypto';
 import { MetadataMap } from '../metadata';
 import OnChainGenerator from '../generators/OnChainGenerator';
-import { BaseCollection } from './Collection';
+import { BaseCollection } from './NFTCollection';
 
 type NFTMintResult = {
   id: string;
@@ -70,7 +70,7 @@ export default class OnChainCollection extends BaseCollection {
     const response = await fcl.send([
       fcl.transaction(transaction),
       fcl.args([
-        ...this.schema.map((field) => {
+        ...this.schema.fields.map((field) => {
           return fcl.arg(
             metadata.map((values) => field.getValue(values)),
             t.Array(field.asCadenceTypeObject()),

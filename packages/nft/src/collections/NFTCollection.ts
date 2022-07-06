@@ -2,7 +2,7 @@
 import * as fcl from '@onflow/fcl';
 
 import { Authorizer, Config } from '@fresh-js/core';
-import * as schema from '../schema';
+import * as metadata from '../metadata';
 
 export default interface NFTCollection {
   config: Config;
@@ -10,7 +10,7 @@ export default interface NFTCollection {
   name: string;
   address?: string;
 
-  schema: schema.Field[];
+  schema: metadata.Schema;
 
   owner?: Authorizer;
   payer?: Authorizer;
@@ -32,17 +32,17 @@ export class BaseCollection implements NFTCollection {
   name: string;
   address?: string;
 
-  schema: schema.Field[];
+  schema: metadata.Schema;
 
   owner?: Authorizer;
   payer?: Authorizer;
   proposer?: Authorizer;
 
-  static defaultFields: schema.Field[] = [
-    new schema.String('name'),
-    new schema.String('description'),
-    new schema.IPFSImage('image'),
-  ];
+  static defaultSchema: metadata.Schema = metadata.createSchema([
+    metadata.String('name'),
+    metadata.String('description'),
+    metadata.IPFSImage('image'),
+  ]);
 
   constructor({
     config,
@@ -56,7 +56,7 @@ export class BaseCollection implements NFTCollection {
     config: Config;
     name: string;
     address?: string;
-    schema: schema.Field[];
+    schema: metadata.Schema;
     owner?: Authorizer;
     payer?: Authorizer;
     proposer?: Authorizer;
@@ -66,7 +66,7 @@ export class BaseCollection implements NFTCollection {
     this.name = name;
     this.address = address;
 
-    this.schema = [...BaseCollection.defaultFields, ...schema];
+    this.schema = BaseCollection.defaultSchema.extend(schema);
 
     this.owner = owner;
     this.payer = payer;

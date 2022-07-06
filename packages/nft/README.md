@@ -25,60 +25,18 @@ Fresh NFT supports the following collection types:
 
 ```js
 import { TestnetConfig } from '@fresh-js/core';
-import { OnChainCollection } from '@fresh-js/nft';
+import { OnChainCollection, metadata } from '@fresh-js/nft';
 
 const collection = new OnChainCollection({
   config: TestnetConfig,
   name: 'MyNFTContract',
   address: '0xf8d6e0586b0a20c7', // Optional: will be set after call to deployContract()
-  schema: [
-    new schema.String('foo'),
-    new schema.Int('bar')],
-  ]
+  schema: metadata.createSchema([
+    metadata.String('foo'),
+    metadata.Int('bar')
+  ]);
 });
 ```
-
-### Metadata schema
-
-A metadata schema defines the structure of an NFT collection.
-
-Today, a schema is simply a list of field types. 
-However, Fresh NFT may support more complex schema models in the future (e.g. sets and editions).
-
-```js
-import { schema } from '@fresh-js/nft';
-
-const metadataSchema = [
-  new schema.String('name'),
-  new schema.Int('age')
-];
-```
-
-#### Default schema fields
-
-By default, Fresh NFT defines the following fields for every NFT collection.
-
-Creator-defined fields are appended to the default fields.
-
-```js
-import { schema } from '@fresh-js/nft';
-
-const defaultSchema = [
-  new schema.String('name'),
-  new schema.String('description'),
-  new schema.IPFSImage('image')
-];
-```
-
-#### Supported fields
-
-- `String`
-- `Bool`
-- `Int`
-- `UInt`
-- `Fix64`
-- `UFix64`
-- `IPFSImage`
 
 ## Configure the collection owner
 
@@ -175,7 +133,7 @@ const contractAddress = await collection.deployContract();
 
 ## Mint NFTs
 
-TODO
+### 
 
 ## Distribute NFTs
 
@@ -191,3 +149,100 @@ A claim sale with a price of zero is equivalent to an airdrop.
 ### Direct sale
 
 _Not yet supported._
+
+## NFT Metadata
+
+Fresh NFT helps with defining metadata type structures and parsing metadata values.
+
+### Metadata schemas
+
+A metadata schema defines the structure of an NFT collection.
+
+Today, a schema is simply a list of field types. 
+However, Fresh NFT may support more complex schema models in the future (e.g. sets and editions).
+
+```js
+import { metadata } from '@fresh-js/nft';
+
+const schema = metadata.createSchema([
+  metadata.String('foo'),
+  metadata.Int('bar')
+]);
+```
+
+### Default schema fields
+
+By default, Fresh NFT defines the following fields for every NFT collection.
+
+Creator-defined fields are appended to the default fields.
+
+```js
+import { metadata } from '@fresh-js/nft';
+
+const defaultSchema = metadata.createSchema([
+  metadata.String('name'),
+  metadata.String('description'),
+  metadata.IPFSImage('image')
+]);
+```
+
+### Supported metadata fields
+
+|Name|Identifier|
+|----|----------|
+|String|`string`|
+|Bool|`bool`|
+|Int|`int`|
+|UInt|`uint`|
+|Fix64|`fix64`|
+|UFix64|`ufix64`|
+|IPFSImage|`ipfs-image`|
+
+### Custom metadata fields
+
+You can define custom metadata fields using the `defineField` function.
+
+```js
+import * as t from '@onflow/types';
+import { metadata } from '@fresh-js/nft';
+
+const MyCustomFieldType = metadata.defineField({
+  id: 'my-custom-field-type',
+  label: 'My Custom Field Type',
+  cadenceType: t.String,
+  sampleValue: 'This is a custom field!',
+})
+
+const schema = metadata.createSchema([
+  metadata.String('foo'),
+  MyCustomFieldType('bar'),
+]);
+```
+
+### Parse a raw metadata schema
+
+You can represent a metadata schema as a raw JavaScript (or JSON) object.
+The `type` field must match a field identifier from the table above.
+
+```js
+const rawSchema = {
+  fields: [
+    {
+      name: 'foo',
+      type: 'string'
+    },
+    {
+      name: 'bar',
+      type: 'int'
+    }
+  ]
+};
+```
+
+Use the `parseSchema` function to convert a raw schema into a `metadata.Schema` object:
+
+```js
+import { metadata } from '@fresh-js/nft';
+
+const schema = metadata.parseSchema(rawSchema);
+```

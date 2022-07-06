@@ -7,7 +7,7 @@ import { Event } from '@fresh-js/core';
 import { PublicKey, SignatureAlgorithm, HashAlgorithm } from '@fresh-js/crypto';
 import { MetadataMap, hashMetadata } from '../metadata';
 import OnChainMintRevealGenerator from '../generators/OnChainMintRevealGenerator';
-import { BaseCollection } from './Collection';
+import { BaseCollection } from './NFTCollection';
 
 type HashedNFT = {
   metadata: MetadataMap;
@@ -108,6 +108,8 @@ export default class OnChainBlindCollection extends BaseCollection {
 
   private hashNFTs(metadata: MetadataMap[]): HashedNFT[] {
     return metadata.map((metadata) => {
+      console.log(this.schema);
+
       const { hash, salt } = hashMetadata(this.schema, metadata);
 
       return {
@@ -151,7 +153,7 @@ export default class OnChainBlindCollection extends BaseCollection {
       fcl.args([
         fcl.arg(ids, t.Array(t.UInt64)),
         fcl.arg(salts, t.Array(t.String)),
-        ...this.schema.map((field) => {
+        ...this.schema.fields.map((field) => {
           return fcl.arg(
             nfts.map((nft) => field.getValue(nft.metadata)),
             t.Array(field.asCadenceTypeObject()),
