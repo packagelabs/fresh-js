@@ -31,12 +31,14 @@ const collection = new OnChainCollection({
   config: TestnetConfig,
   name: 'MyNFTContract',
   address: '0xf8d6e0586b0a20c7', // Optional: will be set after call to deployContract()
-  schema: metadata.createSchema([
+  schema: metadata.defaultSchema.extend([
     metadata.String('foo'),
     metadata.Int('bar')
   ]);
 });
 ```
+
+Read more: [defining a metadata schema](#metadata-schemas).
 
 ## Configure the collection owner
 
@@ -170,19 +172,42 @@ const schema = metadata.createSchema([
 ]);
 ```
 
-### Default schema fields
+### Default schema
 
-By default, Fresh NFT defines the following fields for every NFT collection.
+Fresh NFT defines a default schema.
+This is the minimum set of fields required to
+implement the [Display](https://github.com/onflow/flow-nft#list-of-common-views)
+metadata view.
 
-Creator-defined fields are appended to the default fields.
+```js
+const defaultSchema = metadata.createSchema(
+  [
+    metadata.String('name'),
+    metadata.String('description'),
+    metadata.IPFSImage('thumbnail')
+  ],
+  {
+    // The default schema implements the MetadataViews.Display view.
+    views: [
+      metadata.DisplayView({
+        name: 'name',
+        description: 'description',
+        thumbnail: 'thumbnail'
+      })
+    ]
+  }
+);
+```
+
+You can use the default schema as a starting place
+and extend it with additional fields.
 
 ```js
 import { metadata } from '@fresh-js/nft';
 
-const defaultSchema = metadata.createSchema([
-  metadata.String('name'),
-  metadata.String('description'),
-  metadata.IPFSImage('image')
+const schema = metadata.defaultSchema.extend([
+  metadata.String('foo'),
+  metadata.Int('bar'),
 ]);
 ```
 

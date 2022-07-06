@@ -11,10 +11,14 @@ export default class OnChainGenerator extends TemplateGenerator {
     contractName: string;
     schema: metadata.Schema;
   }): Promise<string> {
+    const displayView = schema.getView(metadata.DisplayView.TYPE);
+
     return this.generate('../templates/cadence/on-chain/contracts/NFT.cdc', {
       contracts,
       contractName,
       fields: schema.fields,
+      // TODO: support multiple views
+      displayView,
     });
   }
 

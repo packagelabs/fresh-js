@@ -3,5 +3,7 @@ export type MetadataValue = { [key: string]: MetadataValue } | string;
 
 export { Field, defineField } from './fields';
 export { String, Int, UInt, Fix64, UFix64, Bool, IPFSImage } from './fields';
-export { Schema, createSchema, parseSchema } from './schema';
+export { Schema, createSchema, parseSchema, defaultSchema } from './schema';
 export { hashMetadata } from './hash';
+
+export { DisplayView } from './views';

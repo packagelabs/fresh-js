@@ -38,12 +38,6 @@ export class BaseCollection implements NFTCollection {
   payer?: Authorizer;
   proposer?: Authorizer;
 
-  static defaultSchema: metadata.Schema = metadata.createSchema([
-    metadata.String('name'),
-    metadata.String('description'),
-    metadata.IPFSImage('image'),
-  ]);
-
   constructor({
     config,
     name,
@@ -66,7 +60,7 @@ export class BaseCollection implements NFTCollection {
     this.name = name;
     this.address = address;
 
-    this.schema = BaseCollection.defaultSchema.extend(schema);
+    this.schema = schema;
 
     this.owner = owner;
     this.payer = payer;

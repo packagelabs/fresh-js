@@ -43,6 +43,7 @@ pub contract {{ contractName }}: NonFungibleToken {
             {{/each}}
         }
 
+        {{#if displayView }}
         pub fun getViews(): [Type] {
             return [
                 Type<MetadataViews.Display>()
@@ -53,10 +54,10 @@ pub contract {{ contractName }}: NonFungibleToken {
             switch view {
                 case Type<MetadataViews.Display>():
                     return MetadataViews.Display(
-                        name: self.name,
-                        description: self.description,
+                        name: self.{{ displayView.options.fields.name }},
+                        description: self.{{ displayView.options.fields.description }},
                         thumbnail: MetadataViews.IPFSFile(
-                            cid: self.image, 
+                            cid: self.{{ displayView.options.fields.thumbnail }}, 
                             nil
                         )
                     )
@@ -64,6 +65,15 @@ pub contract {{ contractName }}: NonFungibleToken {
 
             return nil
         }
+        {{ else }}
+        pub fun getViews(): [Type] {
+            return []
+        }
+
+        pub fun resolveView(_ view: Type): AnyStruct? {
+            return nil
+        }
+        {{/if}}
     }
 
     pub resource interface {{ contractName }}CollectionPublic {
