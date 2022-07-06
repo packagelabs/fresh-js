@@ -1,11 +1,7 @@
-import Project from './Project';
+import OnChainCollection from './collections/OnChainCollection';
+import OnChainBlindCollection from './collections/OnChainBlindCollection';
 
-export { Project };
-
-import OnChainMinter from './minters/OnChainMinter';
-import OnChainBlindMinter from './minters/OnChainBlindMinter';
-
-export { OnChainMinter, OnChainBlindMinter };
+export { OnChainCollection, OnChainBlindCollection };
 
 import ClaimSale from './sales/ClaimSale';
 

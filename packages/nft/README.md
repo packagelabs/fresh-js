@@ -10,24 +10,37 @@ It also powers [Freshmint](https://github.com/packagelabs/freshmint).
 npm i @fresh-js/nft
 ```
 
-## Define a project
+## Create an NFT collection
 
-A `Project` is the configuration for a single NFT project or collection.
+An NFT collection is a set of NFTs that share the same type structure.
+A collection is defined by a Cadence contract that implements the [Flow NFT interface](https://github.com/onflow/flow-nft).
+All NFTs in a collection are minted by the same contract.
+
+Fresh NFT supports the following collection types:
+
+|Name                    |Metadata Format|Metadata Views Support|Blind Minting Support|
+|------------------------|---------------|----------------------|---------------------|
+|`OnChainCollection`     |On-chain       |Yes                   |No                   |
+|`OnChainBlindCollection`|On-chain       |Yes                   |Yes                  |
 
 ```js
 import { TestnetConfig } from '@fresh-js/core';
-import { Project } from '@fresh-js/nft';
+import { OnChainCollection } from '@fresh-js/nft';
 
-const project = new Project({
+const collection = new OnChainCollection({
   config: TestnetConfig,
-  contractName: 'MyNFTContract',
-  schema: [new schema.String('foo'), new schema.Int('bar')],
-})
+  name: 'MyNFTContract',
+  address: '0xf8d6e0586b0a20c7', // Optional: will be set after call to deployContract()
+  schema: [
+    new schema.String('foo'),
+    new schema.Int('bar')],
+  ]
+});
 ```
 
 ### Metadata schema
 
-A metadata schema defines the structure of an NFT project.
+A metadata schema defines the structure of an NFT collection.
 
 Today, a schema is simply a list of field types. 
 However, Fresh NFT may support more complex schema models in the future (e.g. sets and editions).
@@ -43,7 +56,7 @@ const metadataSchema = [
 
 #### Default schema fields
 
-By default, Fresh NFT defines the following fields for every NFT project.
+By default, Fresh NFT defines the following fields for every NFT collection.
 
 Creator-defined fields are appended to the default fields.
 
@@ -67,36 +80,102 @@ const defaultSchema = [
 - `UFix64`
 - `IPFSImage`
 
-## Deploy an NFT contract
+## Configure the collection owner
 
-After defining a project, you can instantiate a minter and deploy your contract.
+You will need to configure a collection owner before you can
+deploy a contract or mint NFTs. The owner is the account that will
+mint, reveal and manage your NFTs.
+
+### Define an authorizer
+
+The owner is defined as an `Authorizer`, an object that can authorize transactions for a specific Flow account.
+
+The snippet below shows how to define an authorizer from an ECDSA private key.
 
 ```js
-import { OnChainMinter } from '@fresh-js/nft';
+import { Authorizer } from '@fresh-js/core';
+import { 
+  InMemoryECPrivateKey, 
+  InMemoryECSigner, 
+  HashAlgorithm,
+  SignatureAlgorithm
+} from '@fresh-js/crypto';
 
-// See minting methods below
-const minter = new OnChainMinter(project);
+const privateKey = InMemoryECPrivateKey.fromHex(
+  process.env.PRIVATE_KEY, 
+  SignatureAlgorithm.ECDSA_P256,
+);
+const signer = new InMemoryECSigner(privateKey, HashAlgorithm.SHA3_256);
 
-await minter.deployContract();
+const authorizer = new Authorizer({ 
+  address: '0xf8d6e0586b0a20c7',
+  keyIndex: 0,
+  signer,
+});
+```
+
+### Set the owner
+
+```js
+const collection = new OnChainCollection(...);
+
+// ...
+
+collection.setOwner(authorizer);
+```
+
+### Use a separate payer or proposer
+
+You can optionally specify separate payer or proposer authorizers.
+This is useful if you would like to create multiple collections, 
+each with a separate owner, but pay for all fees from a central account.
+
+An NFT collection has three authorizer roles:
+
+|Role|Actions|
+|----|-------|
+|Owner|Mints, reveals and distributes NFTs. This is the only account with administrator access to the NFT contract.|
+|Payer|Pays fees for all transactions.|
+|Proposer|Signs as the proposer on all transactions.|
+
+Note: the collection owner will sign for any role that is not explicitly set.
+
+```js
+collection.setOwner(ownerAuthorizer);
+
+collection.setPayer(payerAuthorizer);
+
+collection.setProposer(proposerAuthorizer);
+```
+
+### Specify authorizers in the constructor
+
+For convenience, you can pass the authorizers directly in the collection constructor:
+
+```js
+const collection = new OnChainCollection({
+  // ...
+  owner: ownerAuthorizer, 
+  payer: payerAuthorizer
+  proposer: proposerAuthorizer
+});
+```
+
+## Deploy a collection
+
+Deploy a collection's contract using the `deployContract()` method:
+
+```js
+const collection = new OnChainCollection(...);
+
+// Note: the call to deployContract() will 
+// automatically update collection.address.
+const contractAddress = await collection.deployContract();
 ```
 
 ## Mint NFTs
 
-Fresh NFT supports several minting methods.
-
-### On-chain minting
-
-In this method, NFT metadata is stored on the blockchain and publicly readable at minting time.
-
-### Blind on-chain minting
-
-This method also stores NFT metadata on the blockchain,
-but allows the creator to reveal the metadata at a later date 
-(i.e. after all NFTs have been claimed).
-
-### Off-chain minting
-
-_Not yet supported._
+TODO
 
 ## Distribute NFTs
 

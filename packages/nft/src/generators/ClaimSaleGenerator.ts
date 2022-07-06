@@ -1,11 +1,7 @@
 import TemplateGenerator, { Contracts } from './TemplateGenerator';
 
 export default class ClaimSaleGenerator extends TemplateGenerator {
-  static async contract({
-    contracts,
-  }: {
-    contracts: Contracts;
-  }): Promise<string> {
+  static async contract({ contracts }: { contracts: Contracts }): Promise<string> {
     return this.generate('../templates/cadence/claim-sale/contracts/NFTClaimSale.cdc', {
       contracts,
     });
