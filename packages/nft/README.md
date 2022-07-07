@@ -277,7 +277,7 @@ can later be used to verify the integrity of the revealed metadata.
 The hidden NFT is converted into a revealed NFT and now contains a full
 on-chain metadata record.
 
-## Set up a bind collection
+## Set up a blind collection
 
 ```js
 import { TestnetConfig } from '@fresh-js/core';
