@@ -264,7 +264,7 @@ const schema = metadata.parseSchema(rawSchema);
 
 Use an `OnChainBlindCollection` to create NFTs that can be blindly minted.
 In a blind mint, NFTs are initially minted as partial objects with their metadata hidden.
-The metadata is then later revealed by the collection owner.
+The collection owner can then reveal the metadata at a later point in time.
 
 Fresh NFT implements blind minting using two separate mint and reveal transactions:
 
@@ -272,15 +272,16 @@ Fresh NFT implements blind minting using two separate mint and reveal transactio
 A hidden NFT contains a SHA256 hash of the complete metadata that 
 can later be used to verify the integrity of the revealed metadata.
 2. The second transaction publishes the NFT metadata to the blockchain.
-The hidden NFT is converted into a revealed NFT and now contains a full
+The hidden NFT is converted into a full NFT containing a complete
 on-chain metadata record.
 
 ### Set up a blind collection
 
 ```js
-import { TestnetConfig } from '@fresh-js/core';
+import { TestnetConfig, Authorizer } from '@fresh-js/core';
 import { OnChainBlindCollection, metadata } from '@fresh-js/nft';
 
+// Intialize your owner authorizer.
 const owner = new Authorizer(...);
 
 const collection = new OnChainBlindCollection({
