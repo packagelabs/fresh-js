@@ -5,7 +5,7 @@ type ViewFunc = (fields: Fields) => View;
 
 type SchemaParameters = SimpleSchemaParameters | AdvancedSchemaParameters;
 type SimpleSchemaParameters = Fields;
-type AdvancedSchemaParameters = { fields: Fields, views?: View[] | ViewFunc[] };
+type AdvancedSchemaParameters = { fields: Fields; views?: View[] | ViewFunc[] };
 
 function isAdvancedSchemaParameters(params: SchemaParameters): params is AdvancedSchemaParameters {
   return (params as AdvancedSchemaParameters).fields !== undefined;
