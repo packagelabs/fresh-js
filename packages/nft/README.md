@@ -140,7 +140,7 @@ const hashAlgorithm = HashAlgorithm.SHA3_256;
 const contractAddress = await collection.deployContract(publicKey, hashAlgorithm);
 ```
 
-## Define a metadata schema
+## Create a metadata schema
 
 A metadata schema defines the structure of an NFT collection.
 
@@ -150,10 +150,13 @@ However, Fresh NFT may support more complex schema models in the future (e.g. se
 ```js
 import { metadata } from '@fresh-js/nft';
 
-const schema = metadata.createSchema([
-  metadata.String('foo'),
-  metadata.Int('bar')
-]);
+// Create a schema with two fields:
+// - "foo" is a string field
+// - "bar" is an integer field
+const schema = metadata.createSchema({
+  foo: metadata.String(),
+  bar: metadata.Int()
+});
 ```
 
 ### Default schema
@@ -312,7 +315,7 @@ const address = await collection.deployContract(
 ### Step 1: Mint NFTs
 
 ```js
-// Note: the metadata fields passed must match those
+// Note: the metadata fields provided must match those
 // defined in your metadata schema.
 const nfts = [
   {
