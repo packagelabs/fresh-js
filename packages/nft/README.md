@@ -436,16 +436,16 @@ async function bulkReveal() {
   
   console.log(nfts);
 
-  // > [
-  // >  { 
-  // >    id: '0',
-  // >    metadata: { ... },
-  // >    metadataSalt: '727ca86ae4a338f21e83ec330f490bcf'
-  // >  },
-  // >  ...
-  // > ]
+  // [
+  //  { 
+  //    id: '0',
+  //    metadata: { ... },
+  //    metadataSalt: '727ca86ae4a338f21e83ec330f490bcf'
+  //  },
+  //  ...
+  // ]
 
-  await collection.reveal(nfts);
+  await collection.revealNFTs(nfts);
 }
 ```
 
