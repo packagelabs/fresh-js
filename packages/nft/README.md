@@ -140,11 +140,7 @@ const hashAlgorithm = HashAlgorithm.SHA3_256;
 const contractAddress = await collection.deployContract(publicKey, hashAlgorithm);
 ```
 
-## NFT metadata
-
-Fresh NFT helps with defining metadata type structures and parsing metadata values.
-
-### Metadata schemas
+## Define a metadata schema
 
 A metadata schema defines the structure of an NFT collection.
 
@@ -260,7 +256,7 @@ import { metadata } from '@fresh-js/nft';
 const schema = metadata.parseSchema(rawSchema);
 ```
 
-## Blind NFT minting
+## Blind mint NFTs
 
 Use an `OnChainBlindCollection` to create NFTs that can be blindly minted.
 In a blind mint, NFTs are initially minted as partial objects with their metadata hidden.
