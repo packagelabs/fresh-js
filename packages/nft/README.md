@@ -339,7 +339,7 @@ console.log(mintedNFTs);
 
 This will print:
 
-```json
+```
 [
   {
     id: "0",
