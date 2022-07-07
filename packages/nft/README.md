@@ -34,7 +34,7 @@ const collection = new OnChainCollection({
   schema: metadata.defaultSchema.extend([
     metadata.String('foo'),
     metadata.Int('bar')
-  ]);
+  ]),
 });
 ```
 
@@ -126,33 +126,21 @@ const collection = new OnChainCollection({
 Deploy a collection's contract using the `deployContract()` method:
 
 ```js
+import { HashAlgorithm } from '@fresh-js/crypto';
+
 const collection = new OnChainCollection(...);
+
+// Specify a public key (with hash algorithm)
+// to attach to the contract account.
+const publicKey = privateKey.getPublicKey();
+const hashAlgorithm = HashAlgorithm.SHA3_256;
 
 // Note: the call to deployContract() will 
 // automatically update collection.address.
-const contractAddress = await collection.deployContract();
+const contractAddress = await collection.deployContract(publicKey, hashAlgorithm);
 ```
 
-## Mint NFTs
-
-### 
-
-## Distribute NFTs
-
-### Claim sale
-
-In a claim sale, a user purchases an NFT from a collection but does not see the NFT
-until after the purchase.
-
-The creator can set an optional allowlist to restrict claiming to a specific list of addresses.
-
-A claim sale with a price of zero is equivalent to an airdrop.
-
-### Direct sale
-
-_Not yet supported._
-
-## NFT Metadata
+## NFT metadata
 
 Fresh NFT helps with defining metadata type structures and parsing metadata values.
 
@@ -182,17 +170,17 @@ metadata view.
 ```js
 const defaultSchema = metadata.createSchema(
   [
-    metadata.String('name'),
-    metadata.String('description'),
-    metadata.IPFSImage('thumbnail')
+    name: metadata.String(),
+    description: metadata.String(),
+    thumbnail: metadata.IPFSImage(),
   ],
   {
     // The default schema implements the MetadataViews.Display view.
     views: [
-      metadata.DisplayView({
-        name: 'name',
-        description: 'description',
-        thumbnail: 'thumbnail'
+      (fields) => metadata.DisplayView({
+        name: fields.name,
+        description: fields.description,
+        thumbnail: fields.thumbnail,
       })
     ]
   }
@@ -206,8 +194,8 @@ and extend it with additional fields.
 import { metadata } from '@fresh-js/nft';
 
 const schema = metadata.defaultSchema.extend([
-  metadata.String('foo'),
-  metadata.Int('bar'),
+  foo: metadata.String(),
+  bar: metadata.Int(),
 ]);
 ```
 
@@ -238,10 +226,10 @@ const MyCustomFieldType = metadata.defineField({
   sampleValue: 'This is a custom field!',
 })
 
-const schema = metadata.createSchema([
-  metadata.String('foo'),
-  MyCustomFieldType('bar'),
-]);
+const schema = metadata.createSchema({
+  foo: metadata.String(),
+  bar: MyCustomFieldType(),
+});
 ```
 
 ### Parse a raw metadata schema
@@ -271,3 +259,262 @@ import { metadata } from '@fresh-js/nft';
 
 const schema = metadata.parseSchema(rawSchema);
 ```
+
+## Mint NFTs
+
+### Blind NFT minting
+
+Use an `OnChainBlindCollection` to create NFTs that can be blindly minted.
+In a blind mint, NFTs are initially minted as partial objects with their metadata hidden.
+The metadata is then later revealed by the collection owner.
+
+Fresh NFT implements blind minting using two separate mint and reveal transactions:
+
+1. The first transaction mints an NFT in its hidden form. 
+A hidden NFT contains a SHA256 hash of the complete metadata that 
+can later be used to verify the integrity of the revealed metadata.
+2. The second transaction publishes the NFT metadata to the blockchain.
+The hidden NFT is converted into a revealed NFT and now contains a full
+on-chain metadata record.
+
+## Set up a bind collection
+
+```js
+import { TestnetConfig } from '@fresh-js/core';
+import { OnChainBlindCollection, metadata } from '@fresh-js/nft';
+
+const owner = new Authorizer(...);
+
+const collection = new OnChainBlindCollection({
+  config: TestnetConfig,
+  name: 'MyNFTContract',
+  schema: metadata.defaultSchema,
+  owner,
+});
+```
+
+## Deploy the contract
+
+```js
+import { HashAlgorithm } from '@fresh-js/crypto';
+
+// Specify a public key (with hash algorithm)
+// to attach to the contract account.
+const publicKey = privateKey.getPublicKey();
+const hashAlgorithm = HashAlgorithm.SHA3_256;
+
+// Specify the IPFS hash of an image (JPEG, PNG, etc)
+// to be used as a placeholder for hidden NFTs.
+const placeholderImage = 'bafybeidlkqhddsjrdue7y3dy27pu5d7ydyemcls4z24szlyik3we7vqvam';
+
+const address = await collection.deployContract(
+  publicKey,
+  hashAlgorithm,
+  placeholderImage
+);
+```
+
+## Step 1: Mint NFTs
+
+```js
+// Note: the metadata fields passed must match those
+// defined in your metadata schema.
+const nfts = [
+  {
+    name: 'NFT 1',
+    description: 'NFT 1 is awesome.',
+    thumbnail: 'bafybeidlkqhddsjrdue7y3dy27pu5d7ydyemcls4z24szlyik3we7vqvam',
+  },
+  {
+    name: 'NFT 2',
+    description: 'NFT 2 is even better.',
+    thumbnail: 'bafybeidlkqhddsjrdue7y3dy27pu5d7ydyemcls4z24szlyik3we7vqvam',
+  },
+];
+
+const mintedNFTs = await collection.mintNFTs(nfts);
+
+console.log(mintedNFTs);
+```
+
+This will print:
+
+```json
+[
+  {
+    id: "0",
+    metadata: {
+      name: "NFT 1",
+      description: "NFT 1 is awesome.",
+      thumbnail: "bafybeidlkqhddsjrdue7y3dy27pu5d7ydyemcls4z24szlyik3we7vqvam"
+    },
+    metadataHash: "ed94560233ee34cf059e846560b43b462d0337e21d563f668404ee4cee407c97",
+    metadataSalt: "727ca86ae4a338f21e83ec330f490bcf",
+    transactionId: "20d0c77028d9a23347330956e8cd253fbe96a225e5cb42a4450fdc2e5cefa8c1"
+  },
+  {
+    id: "1",
+    metadata: {
+      name: "NFT 2",
+      description: "NFT 2 is even better.",
+      thumbnail: "bafybeidlkqhddsjrdue7y3dy27pu5d7ydyemcls4z24szlyik3we7vqvam"
+    },
+    metadataHash: "504b154e868692932e2ef77900459915d3ab97be6150b2eac03c65b233cfbb8c",
+    metadataSalt: "18087aeaa388597b81cafdf4d2f6d81f",
+    transactionId: "20d0c77028d9a23347330956e8cd253fbe96a225e5cb42a4450fdc2e5cefa8c1"
+  }
+]
+```
+
+The `mintNFTs` function generates a unique salt for each minted NFT.
+The salt is used to compute the metadata hash and prevents users from hash-grinding
+against a known set of possible metadata values.
+
+Important: you **must** save the `id`, `metadata` and `metadataSalt` fields for each NFT.
+You'll need them to later reveal the NFTs.
+
+### Randomized minting
+
+Blind NFTs are often minted in a random order. To randomize your mint,
+shuffle your input array before calling `mintNFTs()`.
+Fresh NFT does not support automatic randomization at this point.
+
+It's important to note that this will only randomize the NFT metadata.
+The minted NFT IDs will still be sequential (i.e. 0, 1, 2, etc).
+
+## Step 2: Reveal NFTs
+
+You can reveal your NFTs at any time.
+You also have the option to reveal NFTs one by one, all at once, or in batches.
+
+```js
+const nft0 = {
+  id: '0',
+  metadata: {
+    name: 'NFT 1',
+    description: 'NFT 1 is awesome.',
+    thumbnail: 'bafybeidlkqhddsjrdue7y3dy27pu5d7ydyemcls4z24szlyik3we7vqvam',
+  },
+  metadataHash: 'ed94560233ee34cf059e846560b43b462d0337e21d563f668404ee4cee407c97',
+  metadataSalt: '727ca86ae4a338f21e83ec330f490bcf',
+  transactionId: '20d0c77028d9a23347330956e8cd253fbe96a225e5cb42a4450fdc2e5cefa8c1'
+}
+
+const nft1 = {
+  id: '1',
+  metadata: {
+    name: 'NFT 2',
+    description: 'NFT 2 is awesome.',
+    thumbnail: 'bafybeidlkqhddsjrdue7y3dy27pu5d7ydyemcls4z24szlyik3we7vqvam',
+  },
+  metadataSalt: '18087aeaa388597b81cafdf4d2f6d81f',
+}
+
+// Reveal a single NFT
+await collection.revealNFTs([nft0]);
+
+// Reveal multiple NFTs
+await collection.revealNFTs([nft0, nft1]);
+```
+
+### NFT reveal strategies
+
+As a collection owner, there are multiple ways you can reveal your NFTs.
+
+#### Bulk manual reveal
+
+This is the simplest strategy. You can choose a point in time to reveal
+all NFTs at once (usually once the collection is sold out).
+
+All users see their NFTs at the same time.
+
+```js
+async function bulkReveal() {
+  // This implementation assumes that you have stored all NFT metadata
+  // and salt values in your database.
+  const nfts = await loadNFTsFromDatabase();
+  
+  console.log(nfts);
+
+  // > [
+  // >  { 
+  // >    id: '0',
+  // >    metadata: { ... },
+  // >    metadataSalt: '727ca86ae4a338f21e83ec330f490bcf'
+  // >  },
+  // >  ...
+  // > ]
+
+  await collection.reveal(nfts);
+}
+```
+
+#### Reveal on purchase
+
+In this strategy, each NFT is revealed immediately after it is claimed by a buyer.
+The NFTs are revealed one by one until all NFTs are claimed.
+
+An individual user sees their revealed NFT shortly after they buy it.
+
+This strategy assumes you are using the [claim sale](#claim-sale) distribution method.
+
+```js
+import * as fcl from '@onflow/fcl';
+
+// This implementation assumes you have the transaction ID
+// of the buyer's claim transaction (i.e. by capturing on your frontend).
+//
+// An alternate and more robust implementation would subscribe
+// to 'NFTClaimSale.Claimed' events and trigger a reveal.
+async function revealAfterPurchase(transactionId) {
+  const { events } = await fcl.tx({ transationId }).onceSealed();
+  
+  const claimEvent = events.find(
+    // Note: this is the event ID for testnet.
+    (event) => event.type === 'A.f6908f3ab6c14d81.NFTClaimSale.Claimed'
+  );
+
+  const nftId = claimEvent.data['nftID'];
+
+  // This implementation assumes that you have stored the NFT metadata
+  // and salt in your database.
+  const { metadata, metadataSalt } = await loadNFTFromDatabase(nftId);
+
+  await collection.reveal([{
+    id: nftId,
+    metadata,
+    metadataSalt
+  }]);
+}
+```
+
+## NFT distribution
+
+Fresh NFT provides several distribution methods that you can use
+after minting your NFT collection.
+
+### Claim sale
+
+In a claim sale, a user purchases an NFT from a collection but does not see the NFT
+until after the purchase.
+
+```js
+import { ClaimSale } from '@fresh-js/nft';
+
+const collection = new OnChainBlindCollection(...);
+
+// After minting your NFTs...
+
+const sale = new ClaimSale(collection);
+
+// Start a new claim sale for 10 FLOW
+await sale.start("10.0");
+
+// Stop the claim sale. 
+// The unsold NFTs stay in the collection owner's account.
+await sale.stop();
+```
+
+### Direct Sale
+
+Coming soon!
