@@ -260,9 +260,7 @@ import { metadata } from '@fresh-js/nft';
 const schema = metadata.parseSchema(rawSchema);
 ```
 
-## Mint NFTs
-
-### Blind NFT minting
+## Blind NFT minting
 
 Use an `OnChainBlindCollection` to create NFTs that can be blindly minted.
 In a blind mint, NFTs are initially minted as partial objects with their metadata hidden.
@@ -277,7 +275,7 @@ can later be used to verify the integrity of the revealed metadata.
 The hidden NFT is converted into a revealed NFT and now contains a full
 on-chain metadata record.
 
-## Set up a blind collection
+### Set up a blind collection
 
 ```js
 import { TestnetConfig } from '@fresh-js/core';
@@ -293,7 +291,7 @@ const collection = new OnChainBlindCollection({
 });
 ```
 
-## Deploy the contract
+### Deploy the contract
 
 ```js
 import { HashAlgorithm } from '@fresh-js/crypto';
@@ -314,7 +312,7 @@ const address = await collection.deployContract(
 );
 ```
 
-## Step 1: Mint NFTs
+### Step 1: Mint NFTs
 
 ```js
 // Note: the metadata fields passed must match those
@@ -373,7 +371,7 @@ against a known set of possible metadata values.
 Important: you **must** save the `id`, `metadata` and `metadataSalt` fields for each NFT.
 You'll need them to later reveal the NFTs.
 
-### Randomized minting
+#### Randomized minting
 
 Blind NFTs are often minted in a random order. To randomize your mint,
 shuffle your input array before calling `mintNFTs()`.
@@ -382,7 +380,7 @@ Fresh NFT does not support automatic randomization at this point.
 It's important to note that this will only randomize the NFT metadata.
 The minted NFT IDs will still be sequential (i.e. 0, 1, 2, etc).
 
-## Step 2: Reveal NFTs
+### Step 2: Reveal NFTs
 
 You can reveal your NFTs at any time.
 You also have the option to reveal NFTs one by one, all at once, or in batches.
@@ -417,11 +415,11 @@ await collection.revealNFTs([nft0]);
 await collection.revealNFTs([nft0, nft1]);
 ```
 
-### NFT reveal strategies
+## NFT reveal strategies
 
 As a collection owner, there are multiple ways you can reveal your NFTs.
 
-#### Bulk manual reveal
+### Bulk manual reveal
 
 This is the simplest strategy. You can choose a point in time to reveal
 all NFTs at once (usually once the collection is sold out).
@@ -449,7 +447,7 @@ async function bulkReveal() {
 }
 ```
 
-#### Reveal on purchase
+### Reveal on purchase
 
 In this strategy, each NFT is revealed immediately after it is claimed by a buyer.
 The NFTs are revealed one by one until all NFTs are claimed.
@@ -515,6 +513,6 @@ await sale.start("10.0");
 await sale.stop();
 ```
 
-### Direct Sale
+### Direct sale
 
 Coming soon!
