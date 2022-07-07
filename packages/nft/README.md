@@ -31,10 +31,10 @@ const collection = new OnChainCollection({
   config: TestnetConfig,
   name: 'MyNFTContract',
   address: '0xf8d6e0586b0a20c7', // Optional: will be set after call to deployContract()
-  schema: metadata.defaultSchema.extend([
+  schema: metadata.defaultSchema.extend({
     metadata.String('foo'),
     metadata.Int('bar')
-  ]),
+  }),
 });
 ```
 
@@ -167,23 +167,21 @@ implement the [Display](https://github.com/onflow/flow-nft#list-of-common-views)
 metadata view.
 
 ```js
-const defaultSchema = metadata.createSchema(
-  [
+const defaultSchema = metadata.createSchema({
+  fields: {
     name: metadata.String(),
     description: metadata.String(),
     thumbnail: metadata.IPFSImage(),
-  ],
-  {
-    // The default schema implements the MetadataViews.Display view.
-    views: [
-      (fields) => metadata.DisplayView({
-        name: fields.name,
-        description: fields.description,
-        thumbnail: fields.thumbnail,
-      })
-    ]
-  }
-);
+  },
+  // The default schema implements the MetadataViews.Display view.
+  views: [
+    (fields) => metadata.DisplayView({
+      name: fields.name,
+      description: fields.description,
+      thumbnail: fields.thumbnail,
+    })
+  ]
+});
 ```
 
 You can use the default schema as a starting place
