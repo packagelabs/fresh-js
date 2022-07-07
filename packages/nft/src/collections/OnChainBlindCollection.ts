@@ -153,7 +153,7 @@ export default class OnChainBlindCollection extends BaseCollection {
       fcl.args([
         fcl.arg(ids, t.Array(t.UInt64)),
         fcl.arg(salts, t.Array(t.String)),
-        ...this.schema.fields.map((field) => {
+        ...this.schema.getFieldList().map((field) => {
           return fcl.arg(
             nfts.map((nft) => field.getValue(nft.metadata)),
             t.Array(field.asCadenceTypeObject()),

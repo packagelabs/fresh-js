@@ -70,7 +70,7 @@ export default class OnChainCollection extends BaseCollection {
     const response = await fcl.send([
       fcl.transaction(transaction),
       fcl.args([
-        ...this.schema.fields.map((field) => {
+        ...this.schema.getFieldList().map((field) => {
           return fcl.arg(
             metadata.map((values) => field.getValue(values)),
             t.Array(field.asCadenceTypeObject()),

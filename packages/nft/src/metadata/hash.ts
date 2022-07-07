@@ -16,7 +16,7 @@ export function hashMetadata(schema: Schema, metadata: MetadataMap): MetadataHas
 
   console.log(metadata);
 
-  schema.fields.forEach((field) => {
+  schema.getFieldList().forEach((field) => {
     const value = field.getValue(metadata);
 
     console.log(field.name, value);

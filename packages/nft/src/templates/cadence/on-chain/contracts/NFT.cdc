@@ -54,10 +54,10 @@ pub contract {{ contractName }}: NonFungibleToken {
             switch view {
                 case Type<MetadataViews.Display>():
                     return MetadataViews.Display(
-                        name: self.{{ displayView.options.fields.name }},
-                        description: self.{{ displayView.options.fields.description }},
+                        name: self.{{viewField displayView.options.fields.name }},
+                        description: self.{{viewField displayView.options.fields.description }},
                         thumbnail: MetadataViews.IPFSFile(
-                            cid: self.{{ displayView.options.fields.thumbnail }}, 
+                            cid: self.{{viewField displayView.options.fields.thumbnail }}, 
                             nil
                         )
                     )

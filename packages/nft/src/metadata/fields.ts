@@ -8,14 +8,17 @@ interface CadenceType {
 }
 
 export class Field {
-  name: string;
+  name?: string;
   cadenceType: CadenceType;
   sampleValue?: string;
 
-  constructor(name: string, cadenceType: CadenceType, sampleValue?: string) {
-    this.name = name;
+  constructor(cadenceType: CadenceType, sampleValue?: string) {
     this.cadenceType = cadenceType;
     this.sampleValue = sampleValue;
+  }
+
+  setName(name: string) {
+    this.name = name;
   }
 
   asCadenceTypeObject(): CadenceType {
@@ -27,7 +30,7 @@ export class Field {
   }
 
   getValue(metadata: MetadataMap): MetadataValue {
-    return metadata[this.name];
+    return metadata[this.name ?? ''];
   }
 
   serializeValue(value: MetadataValue): Buffer {
@@ -38,7 +41,7 @@ export class Field {
 }
 
 type FieldType = {
-  (name: string, options?: any): Field;
+  (options?: any): Field;
   id: string;
   label: string;
 };
@@ -54,8 +57,8 @@ export function defineField({
   cadenceType: CadenceType;
   sampleValue?: string;
 }): FieldType {
-  const fieldType = (name: string, options: any = {}): Field => {
-    return new Field(name, cadenceType, sampleValue);
+  const fieldType = (options: any = {}): Field => {
+    return new Field(cadenceType, sampleValue);
   };
 
   fieldType.id = id;
@@ -124,13 +127,17 @@ function getFieldTypeById(id: string): FieldType {
   return fieldTypesById[id];
 }
 
+export type Fields = { [key: string]: Field };
+
 export type FieldInput = { name: string; type: string };
 
-export function parseFields(fields: FieldInput[]): Field[] {
-  return fields.map((field) => {
+export function parseFields(fields: FieldInput[]): Fields {
+  return fields.reduce((fieldMap: Fields, field) => {
     const name = field.name;
     const fieldType = getFieldTypeById(field.type);
 
-    return fieldType(name);
-  });
+    fieldMap[name] = fieldType();
+
+    return fieldMap;
+  }, {});
 }

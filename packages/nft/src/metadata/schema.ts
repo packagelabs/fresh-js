@@ -1,32 +1,66 @@
-import { Field, FieldInput, String, IPFSImage, parseFields } from './fields';
+import { Field, Fields, FieldInput, String, IPFSImage, parseFields } from './fields';
 import { DisplayView, View } from './views';
 
-type SchemaOptions = {
-  views?: View[];
-};
+type ViewFunc = (fields: Fields) => View;
+
+type SchemaParameters = SimpleSchemaParameters | AdvancedSchemaParameters;
+type SimpleSchemaParameters = Fields;
+type AdvancedSchemaParameters = { fields: Fields, views?: View[] | ViewFunc[] };
+
+function isAdvancedSchemaParameters(params: SchemaParameters): params is AdvancedSchemaParameters {
+  return (params as AdvancedSchemaParameters).fields !== undefined;
+}
 
 export class Schema {
-  fields: Field[];
+  fields: Fields;
   views: View[];
 
-  constructor(fields: Field[], options?: SchemaOptions) {
-    this.fields = fields;
-    this.views = options?.views ?? [];
+  constructor(params: SchemaParameters) {
+    if (isAdvancedSchemaParameters(params)) {
+      this.fields = Schema.prepareFields(params.fields);
+      this.views = Schema.prepareViews(params.fields, params.views ?? []);
+    } else {
+      this.fields = Schema.prepareFields(params);
+      this.views = [];
+    }
+  }
+
+  private static prepareFields(fields: Fields): Fields {
+    // Set the name of all fields.
+    for (const name in fields) {
+      fields[name].setName(name);
+    }
+
+    return fields;
+  }
+
+  getFieldList(): Field[] {
+    return Object.values(this.fields);
+  }
+
+  private static prepareViews(fields: Fields, views: View[] | ViewFunc[]): View[] {
+    return views.map((view: View | ViewFunc) => {
+      if (typeof view === 'function') {
+        return view(fields);
+      }
+
+      return view;
+    });
   }
 
   // TODO: include options in extend
-  extend(schema: Schema | Field[]) {
+  extend(schema: Schema | Fields) {
     let fields;
 
-    if (Array.isArray(schema)) {
-      fields = schema;
-    } else {
+    if (schema instanceof Schema) {
       fields = schema.fields;
+    } else {
+      fields = schema;
     }
 
-    const newFields = [...this.fields, ...fields];
+    const newFields = Object.assign({}, this.fields, fields);
 
-    return new Schema(newFields, { views: this.views });
+    return new Schema({ fields: newFields, views: this.views });
   }
 
   getView(name: string): View | undefined {
@@ -34,26 +68,32 @@ export class Schema {
   }
 }
 
-export function createSchema(fields: Field[], options?: SchemaOptions): Schema {
-  return new Schema(fields, options);
+export function createSchema(params: SchemaParameters): Schema {
+  return new Schema(params);
 }
 
 type SchemaInput = { fields: FieldInput[] } | FieldInput[];
 
 export function parseSchema(input: SchemaInput): Schema {
   if (Array.isArray(input)) {
-    return createSchema(parseFields(input));
+    return createSchema({ fields: parseFields(input) });
   }
 
-  return createSchema(parseFields(input.fields));
+  return createSchema({ fields: parseFields(input.fields) });
 }
 
-export const defaultSchema = createSchema([String('name'), String('description'), IPFSImage('thumbnail')], {
+export const defaultSchema = createSchema({
+  fields: {
+    name: String(),
+    description: String(),
+    thumbnail: IPFSImage(),
+  },
   views: [
-    DisplayView({
-      name: 'name',
-      description: 'description',
-      thumbnail: 'thumbnail',
-    }),
+    (fields: Fields) =>
+      DisplayView({
+        name: fields.name,
+        description: fields.description,
+        thumbnail: fields.thumbnail,
+      }),
   ],
 });

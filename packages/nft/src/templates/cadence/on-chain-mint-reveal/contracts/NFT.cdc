@@ -103,10 +103,10 @@ pub contract {{ contractName }}: NonFungibleToken {
         pub fun resolveDisplay(): MetadataViews.Display {
             if let metadata = self.getMetadata() {
                 return MetadataViews.Display(
-                    name: metadata.{{ displayView.options.fields.name }},
-                    description: metadata.{{ displayView.options.fields.description }},
+                    name: metadata.{{viewField displayView.options.fields.name }},
+                    description: metadata.{{viewField displayView.options.fields.description }},
                     thumbnail: MetadataViews.IPFSFile(
-                        cid: metadata.{{ displayView.options.fields.thumbnail }}, 
+                        cid: metadata.{{viewField displayView.options.fields.thumbnail }}, 
                         nil
                     )
                 )
