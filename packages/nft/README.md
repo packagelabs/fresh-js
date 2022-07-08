@@ -32,8 +32,8 @@ const collection = new OnChainCollection({
   name: 'MyNFTContract',
   address: '0xf8d6e0586b0a20c7', // Optional: will be set after call to deployContract()
   schema: metadata.defaultSchema.extend({
-    metadata.String('foo'),
-    metadata.Int('bar')
+    foo: metadata.String(),
+    bar: metadata.Int()
   }),
 });
 ```
