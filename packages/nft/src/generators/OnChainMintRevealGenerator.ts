@@ -16,7 +16,7 @@ export default class OnChainMintRevealGenerator extends TemplateGenerator {
     return this.generate('../templates/cadence/on-chain-mint-reveal/contracts/NFT.cdc', {
       contracts,
       contractName,
-      fields: schema.fields,
+      fields: schema.getFieldList(),
       // TODO: support multiple views
       displayView,
     });
@@ -57,7 +57,7 @@ export default class OnChainMintRevealGenerator extends TemplateGenerator {
       contracts,
       contractName,
       contractAddress,
-      fields: schema.fields,
+      fields: schema.getFieldList(),
     });
   }
 }
