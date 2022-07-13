@@ -4,7 +4,8 @@ transaction(
     publicKeyHex: String,
     signatureAlgorithm: UInt8,
     hashAlgorithm: UInt8,
-    placeholderImage: String
+    placeholderImage: String,
+    saveAdminResourceToContractAccount: Bool,
 ) {
     prepare(admin: AuthAccount) {
         let account = AuthAccount(payer: admin)
@@ -20,11 +21,20 @@ transaction(
             weight: 1000.0
         )
 
-        account.contracts.add(
-            name: contractName,
-            code: contractCode.decodeHex(),
-            admin,
-            placeholderImage
-        )
+        if saveAdminResourceToContractAccount {
+            account.contracts.add(
+                name: contractName,
+                code: contractCode.decodeHex(),
+                account,
+                placeholderImage,
+            )
+        } else {
+            account.contracts.add(
+                name: contractName,
+                code: contractCode.decodeHex(),
+                admin,
+                placeholderImage,
+            )
+        }
     }
 }
