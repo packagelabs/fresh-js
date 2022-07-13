@@ -6,7 +6,7 @@ import * as t from '@onflow/types';
 import { Event } from '@fresh-js/core';
 import { PublicKey, SignatureAlgorithm, HashAlgorithm } from '@fresh-js/crypto';
 import { MetadataMap, hashMetadata } from '../metadata';
-import OnChainMintRevealGenerator from '../generators/OnChainMintRevealGenerator';
+import OnChainBlindGenerator from '../generators/OnChainBlindGenerator';
 import { BaseCollection } from './NFTCollection';
 
 type HashedNFT = {
@@ -36,7 +36,7 @@ type NFTRevealResult = {
 
 export default class OnChainBlindCollection extends BaseCollection {
   async getContract(): Promise<string> {
-    return OnChainMintRevealGenerator.contract({
+    return OnChainBlindGenerator.contract({
       contracts: this.config.contracts,
       contractName: this.name,
       schema: this.schema,
@@ -44,7 +44,7 @@ export default class OnChainBlindCollection extends BaseCollection {
   }
 
   async deployContract(publicKey: PublicKey, hashAlgo: HashAlgorithm, placeholderImage: string): Promise<string> {
-    const transaction = await OnChainMintRevealGenerator.deploy();
+    const transaction = await OnChainBlindGenerator.deploy();
 
     const contractCode = await this.getContract();
     const contractCodeHex = Buffer.from(contractCode, 'utf-8').toString('hex');
@@ -83,7 +83,7 @@ export default class OnChainBlindCollection extends BaseCollection {
 
     const hashes = hashedNFTs.map((nft) => nft.metadataHash);
 
-    const transaction = await OnChainMintRevealGenerator.mint({
+    const transaction = await OnChainBlindGenerator.mint({
       contracts: this.config.contracts,
       contractName: this.name,
       // TODO: return error if contract address is not set
@@ -140,7 +140,7 @@ export default class OnChainBlindCollection extends BaseCollection {
     const ids = nfts.map((nft) => nft.id);
     const salts = nfts.map((nft) => nft.metadataSalt);
 
-    const transaction = await OnChainMintRevealGenerator.reveal({
+    const transaction = await OnChainBlindGenerator.reveal({
       contracts: this.config.contracts,
       contractName: this.name,
       // TODO: return error if contract address is not set
