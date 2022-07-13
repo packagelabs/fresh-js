@@ -43,13 +43,22 @@ export default class OnChainBlindCollection extends BaseCollection {
     });
   }
 
-  async deployContract(publicKey: PublicKey, hashAlgo: HashAlgorithm, placeholderImage: string): Promise<string> {
+  async deployContract(
+    publicKey: PublicKey,
+    hashAlgo: HashAlgorithm,
+    placeholderImage: string,
+    options?: {
+      saveAdminResourceToContractAccount?: boolean,
+    },
+  ): Promise<string> {
     const transaction = await OnChainBlindGenerator.deploy();
 
     const contractCode = await this.getContract();
     const contractCodeHex = Buffer.from(contractCode, 'utf-8').toString('hex');
 
     const sigAlgo = publicKey.signatureAlgorithm();
+
+    const saveAdminResourceToContractAccount = options?.saveAdminResourceToContractAccount ?? false;
 
     const response = await fcl.send([
       fcl.transaction(transaction),
@@ -60,6 +69,7 @@ export default class OnChainBlindCollection extends BaseCollection {
         fcl.arg(SignatureAlgorithm.toCadence(sigAlgo), t.UInt8),
         fcl.arg(HashAlgorithm.toCadence(hashAlgo), t.UInt8),
         fcl.arg(placeholderImage, t.String),
+        fcl.arg(saveAdminResourceToContractAccount, t.Bool),
       ]),
       fcl.limit(1000),
 
