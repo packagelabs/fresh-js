@@ -48,7 +48,7 @@ export default class OnChainBlindCollection extends BaseCollection {
     hashAlgo: HashAlgorithm,
     placeholderImage: string,
     options?: {
-      saveAdminResourceToContractAccount?: boolean,
+      saveAdminResourceToContractAccount?: boolean;
     },
   ): Promise<string> {
     const transaction = await OnChainBlindGenerator.deploy();

@@ -25,10 +25,10 @@ export default class OnChainCollection extends BaseCollection {
   }
 
   async deployContract(
-    publicKey: PublicKey, 
+    publicKey: PublicKey,
     hashAlgo: HashAlgorithm,
     options?: {
-      saveAdminResourceToContractAccount?: boolean,
+      saveAdminResourceToContractAccount?: boolean;
     },
   ): Promise<string> {
     const transaction = await OnChainGenerator.deploy();
