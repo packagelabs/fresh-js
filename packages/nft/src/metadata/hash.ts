@@ -14,12 +14,8 @@ export function hashMetadata(schema: Schema, metadata: MetadataMap): MetadataHas
 
   let message = salt;
 
-  console.log(metadata);
-
   schema.getFieldList().forEach((field) => {
     const value = field.getValue(metadata);
-
-    console.log(field.name, value);
 
     const serialized = field.serializeValue(value);
 

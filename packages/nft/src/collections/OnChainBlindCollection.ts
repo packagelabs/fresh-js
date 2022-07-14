@@ -118,8 +118,6 @@ export default class OnChainBlindCollection extends BaseCollection {
 
   private hashNFTs(metadata: MetadataMap[]): HashedNFT[] {
     return metadata.map((metadata) => {
-      console.log(this.schema);
-
       const { hash, salt } = hashMetadata(this.schema, metadata);
 
       return {
