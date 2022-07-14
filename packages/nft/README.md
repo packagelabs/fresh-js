@@ -391,9 +391,7 @@ const nft0 = {
     description: 'NFT 1 is awesome.',
     thumbnail: 'bafybeidlkqhddsjrdue7y3dy27pu5d7ydyemcls4z24szlyik3we7vqvam',
   },
-  metadataHash: 'ed94560233ee34cf059e846560b43b462d0337e21d563f668404ee4cee407c97',
   metadataSalt: '727ca86ae4a338f21e83ec330f490bcf',
-  transactionId: '20d0c77028d9a23347330956e8cd253fbe96a225e5cb42a4450fdc2e5cefa8c1'
 }
 
 const nft1 = {
@@ -482,6 +480,177 @@ async function revealAfterPurchase(transactionId) {
     metadataSalt
   }]);
 }
+```
+
+## Mint Edition NFTs
+
+The `EditionCollection` allows developers to mint edition-based NFTs.
+In this model, a collection can contain multiple editions.
+All NFTs in an addition share the same metadata;
+their only difference is their serial numbers.
+
+```js
+import { TestnetConfig, Authorizer } from '@fresh-js/core';
+import { EditionCollection, metadata } from '@fresh-js/nft';
+
+// Intialize your owner authorizer.
+const owner = new Authorizer(...);
+
+// An edition collection uses the same configuration as normal collections,
+// including the metadata schema.
+const collection = new EditionCollection({
+  config: TestnetConfig,
+  name: 'MyEditionNFTContract',
+  schema: metadata.defaultSchema,
+  owner,
+});
+```
+
+### Step 1: Create an edition
+
+```js
+const edition = {
+  // This edition will contain 5 NFTs.
+  size: 5,
+  // Note: the metadata fields provided must match those
+  // defined in your metadata schema.
+  metadata: {
+    name: 'Edition 1',
+    description: 'This is the first edition',
+    thumbnail: 'bafybeidlkqhddsjrdue7y3dy27pu5d7ydyemcls4z24szlyik3we7vqvam',
+  }
+};
+
+// This function submits a transaction that publishes
+// this edition to the blockchain. 
+// 
+// Once you create an edition, the metadata is publicly-viewable.
+const nfts = await collection.createEdition(edition);
+
+console.log(nfts);
+```
+
+This will print:
+
+```
+[
+  { editionId: '0', editionSerial: '1' },
+  { editionId: '0', editionSerial: '2' },
+  { editionId: '0', editionSerial: '3' },
+  { editionId: '0', editionSerial: '4' },
+  { editionId: '0', editionSerial: '5' },
+]
+```
+
+#### Create editions in bulk
+
+You can also use `collection.createEditions()` to create multiple editions at once.
+
+### Step 2: Mint NFTs
+
+You can mint NFTs to any existing edition.
+The input to each NFT is simply its edition ID and serial number.
+
+**However, there are several important steps you need to take to avoid
+leaking edition contents before they are revealed.**
+
+1. Always randomize the minting order.
+
+   This prevents users from being able to guess an NFT's _serial number_ before it is revealed.
+
+2. When creating multiple editions, always mint their NFTs in a mixed batch, rather than by edition.
+
+   This prevents users from being able to guess an NFT's _edition_ before it is revealed.
+
+```js
+import shuffle from 'your-secure-randomization-lib';
+
+// Note: the metadata fields provided must match those
+// defined in your metadata schema.
+const nfts = [
+  { editionId: '0', editionSerial: '1' },
+  { editionId: '0', editionSerial: '2' },
+  { editionId: '0', editionSerial: '3' },
+  { editionId: '0', editionSerial: '4' },
+  { editionId: '0', editionSerial: '5' },
+  { editionId: '1', editionSerial: '1' },
+  { editionId: '1', editionSerial: '2' },
+  { editionId: '1', editionSerial: '3' },
+  { editionId: '1', editionSerial: '4' },
+  { editionId: '1', editionSerial: '5' },
+];
+
+// As mentioned above, ALWAYS randomize the mint order.
+const randomizedNFTs = shuffle(nfts);
+
+console.log(randomizedNFTs);
+
+// [
+//   { editionId: '1', editionSerial: '3' },
+//   { editionId: '0', editionSerial: '2' },
+//   { editionId: '0', editionSerial: '1' },
+//   { editionId: '1', editionSerial: '4' },
+//   { editionId: '0', editionSerial: '4' },
+//   { editionId: '1', editionSerial: '5' },
+//   { editionId: '1', editionSerial: '2' },
+//   { editionId: '0', editionSerial: '3' },
+//   { editionId: '1', editionSerial: '1' },
+//   { editionId: '0', editionSerial: '5' },
+// ]
+
+const mintedNFTs = await collection.mintNFTs(randomizedNFTs);
+
+console.log(mintedNFTs);
+```
+
+This will print:
+
+```
+[
+  {
+    id: '0',
+    editionId: '1',
+    editionSerial: '3',
+    editionHash: 'ab17379badad7bcf91885104f449a679b4cc68d1e3ccd527c6c7b922d0ae2655',
+    editionSalt: '6d8f193cab051793a1864bb8d082cf32',
+    transactionId: 'e648c662c3eb8550030c95c0dcc01d6d179925b9fc33fbaabe90715555d78ead'
+  },
+  {
+    id: '1',
+    editionId: '0',
+    editionSerial: '3',
+    editionHash: '10a315ec07b64935cebe82f14cdc5d7320ad941db3a14ad998305851d75c2119',
+    editionSalt: '8c658bba126995b1f99b8c9af374716f',
+    transactionId: 'e648c662c3eb8550030c95c0dcc01d6d179925b9fc33fbaabe90715555d78ead'
+  },
+  ...
+]
+```
+
+### Step 3: Reveal NFTs
+
+Reveal edition NFTs by publishing their edition ID, serial number and unique salt.
+
+```js
+const nft0 = {
+  id: '0',
+  editionId: '1',
+  editionSerial: '3',
+  editionSalt: '6d8f193cab051793a1864bb8d082cf32',
+};
+
+const nft1 = {
+  id: '1',
+  editionId: '0',
+  editionSerial: '3',
+  editionSalt: '8c658bba126995b1f99b8c9af374716f',
+};
+
+// Reveal a single NFT
+await collection.revealNFT(nft0);
+
+// Reveal multiple NFTs
+await collection.revealNFTs([nft0, nft1]);
 ```
 
 ## NFT distribution
