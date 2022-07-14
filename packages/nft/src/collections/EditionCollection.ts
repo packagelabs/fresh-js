@@ -2,24 +2,23 @@
 import * as fcl from '@onflow/fcl';
 // @ts-ignore
 import * as t from '@onflow/types';
-import { randomBytes } from 'crypto';
-import { SHA3_256Hasher } from '@fresh-js/crypto';
 
 import { Event } from '@fresh-js/core';
 import { PublicKey, SignatureAlgorithm, HashAlgorithm } from '@fresh-js/crypto';
 import { MetadataMap } from '../metadata';
 import { BaseCollection } from './NFTCollection';
 import EditionGenerator from '../generators/EditionGenerator';
+import { hashWithSalt } from '../hash';
 
-type EditionInput = {
+type Edition = {
   size: number;
   metadata: MetadataMap;
-}
+};
 
 type EditionNFT = {
   editionId: string;
   editionSerial: string;
-}
+};
 
 type HashedEditionNFT = {
   editionId: string;
@@ -28,7 +27,7 @@ type HashedEditionNFT = {
   editionSalt: string;
 };
 
-type EditionNFTMintResult = {
+type MintResult = {
   id: string;
   editionId: string;
   editionSerial: string;
@@ -37,14 +36,14 @@ type EditionNFTMintResult = {
   transactionId: string;
 };
 
-interface NFTRevealInput {
+interface RevealInput {
   id: string;
   editionId: string;
   editionSerial: string;
   editionSalt: string;
 }
 
-type NFTRevealResult = {
+type RevealResult = {
   id: string;
   transactionId: string;
 };
@@ -92,7 +91,7 @@ export default class EditionCollection extends BaseCollection {
     ]);
 
     // TODO: handle error
-    const { events } = await fcl.tx(response).onceSealed();
+    const { events, error: _ } = await fcl.tx(response).onceSealed();
 
     const accountCreatedEvent: Event = events.find((event: Event) => event.type === 'flow.AccountCreated');
 
@@ -103,7 +102,11 @@ export default class EditionCollection extends BaseCollection {
     return address;
   }
 
-  async createEditions(editions: EditionInput[]): Promise<EditionNFT[]> {
+  async createEdition(edition: Edition): Promise<EditionNFT[]> {
+    return this.createEditions([edition]);
+  }
+
+  async createEditions(editions: Edition[]): Promise<EditionNFT[]> {
     const transaction = await EditionGenerator.createEditions({
       contracts: this.config.contracts,
       contractName: this.name,
@@ -112,7 +115,7 @@ export default class EditionCollection extends BaseCollection {
       schema: this.schema,
     });
 
-    const sizes = editions.map(edition => edition.size);
+    const sizes = editions.map((edition) => edition.size);
 
     const response = await fcl.send([
       fcl.transaction(transaction),
@@ -136,7 +139,12 @@ export default class EditionCollection extends BaseCollection {
     return formatEditionResults(events, editions);
   }
 
-  async mintNFTs(nfts: EditionNFT[]): Promise<EditionNFTMintResult[]> {
+  async mintNFT(nft: EditionNFT): Promise<MintResult> {
+    const results = await this.mintNFTs([nft]);
+    return results[0];
+  }
+
+  async mintNFTs(nfts: EditionNFT[]): Promise<MintResult[]> {
     const hashedNFTs = hashNFTs(nfts);
 
     const hashes = hashedNFTs.map((nft) => nft.editionHash);
@@ -159,12 +167,17 @@ export default class EditionCollection extends BaseCollection {
     const { transactionId } = response;
 
     // TODO: handle error
-    const { events } = await fcl.tx(response).onceSealed();
+    const { events, error: _ } = await fcl.tx(response).onceSealed();
 
     return formatMintResults(transactionId, events, hashedNFTs);
   }
 
-  async revealNFTs(nfts: NFTRevealInput[]): Promise<NFTRevealResult[]> {
+  async revealNFT(nft: RevealInput): Promise<RevealResult> {
+    const results = await this.revealNFTs([nft]);
+    return results[0];
+  }
+
+  async revealNFTs(nfts: RevealInput[]): Promise<RevealResult[]> {
     const nftIds = nfts.map((nft) => nft.id);
     const editionIds = nfts.map((nft) => nft.editionId);
     const editionSerials = nfts.map((nft) => nft.editionSerial);
@@ -193,28 +206,13 @@ export default class EditionCollection extends BaseCollection {
     const { transactionId } = response;
 
     // TODO: handle error
-    const { events } = await fcl.tx(response).onceSealed();
+    const { events, error: _ } = await fcl.tx(response).onceSealed();
 
-    return this.formatRevealtResults(transactionId, events);
-  }
-
-  private formatRevealtResults(transactionId: string, events: Event[]): NFTRevealResult[] {
-    const deposits = events.filter((event) => event.type.includes('.Revealed'));
-
-    return deposits.map((deposit) => {
-      return {
-        id: deposit.data.id,
-        transactionId,
-      };
-    });
+    return formatRevealtResults(transactionId, events);
   }
 }
 
-function formatMintResults(
-  transactionId: string,
-  events: Event[],
-  nfts: HashedEditionNFT[]
-): EditionNFTMintResult[] {
+function formatMintResults(transactionId: string, events: Event[], nfts: HashedEditionNFT[]): MintResult[] {
   const deposits = events.filter((event) => event.type.includes('.Minted'));
 
   return deposits.map((deposit, i) => {
@@ -231,14 +229,25 @@ function formatMintResults(
   });
 }
 
-function formatEditionResults(events: Event[], editions: EditionInput[]): EditionNFT[] {
+function formatEditionResults(events: Event[], editions: Edition[]): EditionNFT[] {
   const editionEvents = events.filter((event) => event.type.includes('.EditionCreated'));
 
   return editions.flatMap((edition, i) => {
     const editionEvent = editionEvents[i];
     const editionId = editionEvent.data.id;
 
-    return getEditionNFTs(editionId, edition.size)
+    return getEditionNFTs(editionId, edition.size);
+  });
+}
+
+function formatRevealtResults(transactionId: string, events: Event[]): RevealResult[] {
+  const deposits = events.filter((event) => event.type.includes('.Revealed'));
+
+  return deposits.map((deposit) => {
+    return {
+      id: deposit.data.id,
+      transactionId,
+    };
   });
 }
 
@@ -248,8 +257,8 @@ function getEditionNFTs(id: string, size: number): EditionNFT[] {
   for (let i = 0; i < size; i++) {
     nfts[i] = {
       editionId: id,
-      editionSerial: String(i+1),
-    }
+      editionSerial: String(i + 1),
+    };
   }
 
   return nfts;
@@ -268,23 +277,10 @@ function hashNFTs(nfts: EditionNFT[]): HashedEditionNFT[] {
   });
 }
 
-// TODO: move into common hash helper
 function hashEdition(editionId: string, editionSerial: string) {
-    const hasher = new SHA3_256Hasher();
+  // TODO: use big-endian bytes
+  const editionIdBuffer = Buffer.from(editionId, 'utf-8');
+  const editionSerialBuffer = Buffer.from(editionSerial, 'utf-8');
 
-    const salt = randomBytes(16);
-
-    // TODO: use big-endian bytes
-    const editionIdBuffer = Buffer.from(editionId, "utf-8");
-    const editionSerialBuffer = Buffer.from(editionSerial, "utf-8");
-
-    let message = Buffer.concat([
-      salt,
-      editionIdBuffer,
-      editionSerialBuffer,
-    ]);
-
-    const hash = hasher.hash(message);
-  
-    return { hash, salt };
+  return hashWithSalt([editionIdBuffer, editionSerialBuffer]);
 }
