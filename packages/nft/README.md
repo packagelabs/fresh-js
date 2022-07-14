@@ -509,7 +509,7 @@ const collection = new EditionCollection({
 ### Step 1: Create an edition
 
 ```js
-const edition = {
+const edition1 = {
   // This edition will contain 5 NFTs.
   size: 5,
   // Note: the metadata fields provided must match those
@@ -521,11 +521,23 @@ const edition = {
   }
 };
 
+const edition2 = {
+  // This edition will contain 5 NFTs.
+  size: 5,
+  // Note: the metadata fields provided must match those
+  // defined in your metadata schema.
+  metadata: {
+    name: 'Edition 2',
+    description: 'This is the second edition',
+    thumbnail: 'bafybeidlkqhddsjrdue7y3dy27pu5d7ydyemcls4z24szlyik3we7vqvam',
+  }
+};
+
 // This function submits a transaction that publishes
 // this edition to the blockchain. 
 // 
 // Once you create an edition, the metadata is publicly-viewable.
-const nfts = await collection.createEdition(edition);
+const nfts = await collection.createEditions([edition1, edition2]);
 
 console.log(nfts);
 ```
@@ -539,12 +551,13 @@ This will print:
   { editionId: '0', editionSerial: '3' },
   { editionId: '0', editionSerial: '4' },
   { editionId: '0', editionSerial: '5' },
+  { editionId: '1', editionSerial: '1' },
+  { editionId: '1', editionSerial: '2' },
+  { editionId: '1', editionSerial: '3' },
+  { editionId: '1', editionSerial: '4' },
+  { editionId: '1', editionSerial: '5' },
 ]
 ```
-
-#### Create editions in bulk
-
-You can also use `collection.createEditions()` to create multiple editions at once.
 
 ### Step 2: Mint NFTs
 
