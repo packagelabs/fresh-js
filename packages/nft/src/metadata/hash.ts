@@ -8,7 +8,7 @@ export function hashMetadata(schema: Schema, metadata: MetadataMap): MetadataHas
   const values = schema.getFieldList().map((field) => {
     const value = field.getValue(metadata);
     return field.serializeValue(value);
-  })
+  });
 
   return hashWithSalt(values);
 }

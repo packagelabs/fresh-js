@@ -73,7 +73,7 @@ export default class EditionGenerator extends TemplateGenerator {
     return this.generate('../templates/cadence/edition-blind/transactions/reveal.cdc', {
       contracts,
       contractName,
-      contractAddress
+      contractAddress,
     });
   }
 }
